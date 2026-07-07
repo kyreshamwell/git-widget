@@ -1,0 +1,467 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2886B555AA12BB598284F306 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6619769C995DF945731ABE2A /* GitHubContributionsService.swift */; };
+		3258DB9E92636DF87023E7E4 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41090CE979D34F7782A60974 /* KeychainHelper.swift */; };
+		43C146609B5833F1CE1D33EC /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F39B97C9754626B3FDE16E9 /* ContributionGridView.swift */; };
+		54C5A1FE4F334C9779338F11 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6619769C995DF945731ABE2A /* GitHubContributionsService.swift */; };
+		5536B6C143F329525E9B3F72 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3479056F9A5B4B17843BC696 /* AppConfig.swift */; };
+		714642D10E7C850B30630A09 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D4D8BC58F4B6C09E6F5F262 /* Provider.swift */; };
+		A4EF8C7FE97FD311C2FC1BE0 /* GitStreakApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1DA0D7FD65A4E207A7042C /* GitStreakApp.swift */; };
+		B2B252E4044066DB6B829272 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3479056F9A5B4B17843BC696 /* AppConfig.swift */; };
+		BBB9275DEFB39AD0375A2ED5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADBBC638D5B24D4368F24AD8 /* ContentView.swift */; };
+		CBD78E23828E7422B0DDC8C6 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DB464DDFA217A2B722BF52 /* ContributionSnapshot.swift */; };
+		CF77C4031317317FC23A6848 /* GitStreakWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715A0C1DE630AE90F99ACCAA /* GitStreakWidget.swift */; };
+		DFBE3F2003068CCFE877F010 /* GitStreakWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 27ECD56B6A894FFAD3518DD4 /* GitStreakWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F26D55410E9C8AAEB7FC1EC5 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DB464DDFA217A2B722BF52 /* ContributionSnapshot.swift */; };
+		FA9BC7850245E2CF5C4D8CA8 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41090CE979D34F7782A60974 /* KeychainHelper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FC0B75074458DF97FCEA1FF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8B11416A7C4117626707730F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F043147747D1F8588AD9FD4F;
+			remoteInfo = GitStreakWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6EC9AF9AC7C8DB751B845508 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DFBE3F2003068CCFE877F010 /* GitStreakWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0D4D8BC58F4B6C09E6F5F262 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		1A1DA0D7FD65A4E207A7042C /* GitStreakApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitStreakApp.swift; sourceTree = "<group>"; };
+		1F39B97C9754626B3FDE16E9 /* ContributionGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionGridView.swift; sourceTree = "<group>"; };
+		211C067B83F888A480DFD7D3 /* GitStreak.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GitStreak.entitlements; sourceTree = "<group>"; };
+		27ECD56B6A894FFAD3518DD4 /* GitStreakWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GitStreakWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3479056F9A5B4B17843BC696 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		41090CE979D34F7782A60974 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		6619769C995DF945731ABE2A /* GitHubContributionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubContributionsService.swift; sourceTree = "<group>"; };
+		715A0C1DE630AE90F99ACCAA /* GitStreakWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitStreakWidget.swift; sourceTree = "<group>"; };
+		ADBBC638D5B24D4368F24AD8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BAA04E0938A5A8A1C74181BE /* GitStreakWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GitStreakWidget.entitlements; sourceTree = "<group>"; };
+		C831761573B3607A3071173B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C84B4B5A4960E30056861951 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F1DB464DDFA217A2B722BF52 /* ContributionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionSnapshot.swift; sourceTree = "<group>"; };
+		F4FBB069647F8CE94D98C57E /* GitStreak.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GitStreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1318B10B204BCCE174CFA9CA /* GitStreakWidget */ = {
+			isa = PBXGroup;
+			children = (
+				1F39B97C9754626B3FDE16E9 /* ContributionGridView.swift */,
+				BAA04E0938A5A8A1C74181BE /* GitStreakWidget.entitlements */,
+				715A0C1DE630AE90F99ACCAA /* GitStreakWidget.swift */,
+				C831761573B3607A3071173B /* Info.plist */,
+				0D4D8BC58F4B6C09E6F5F262 /* Provider.swift */,
+			);
+			path = GitStreakWidget;
+			sourceTree = "<group>";
+		};
+		2A7D130EF0D44C8D1EAF77E3 /* GitStreak */ = {
+			isa = PBXGroup;
+			children = (
+				ADBBC638D5B24D4368F24AD8 /* ContentView.swift */,
+				211C067B83F888A480DFD7D3 /* GitStreak.entitlements */,
+				1A1DA0D7FD65A4E207A7042C /* GitStreakApp.swift */,
+				C84B4B5A4960E30056861951 /* Info.plist */,
+			);
+			path = GitStreak;
+			sourceTree = "<group>";
+		};
+		80B905415CCA4926D43E7321 = {
+			isa = PBXGroup;
+			children = (
+				2A7D130EF0D44C8D1EAF77E3 /* GitStreak */,
+				1318B10B204BCCE174CFA9CA /* GitStreakWidget */,
+				D93FF07DB7301194E38C0ACE /* Shared */,
+				CD5F5272AAF75E812F5C84FE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CD5F5272AAF75E812F5C84FE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F4FBB069647F8CE94D98C57E /* GitStreak.app */,
+				27ECD56B6A894FFAD3518DD4 /* GitStreakWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D93FF07DB7301194E38C0ACE /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				3479056F9A5B4B17843BC696 /* AppConfig.swift */,
+				F1DB464DDFA217A2B722BF52 /* ContributionSnapshot.swift */,
+				6619769C995DF945731ABE2A /* GitHubContributionsService.swift */,
+				41090CE979D34F7782A60974 /* KeychainHelper.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9019E30A1877BED11DD4773F /* GitStreak */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EE316A38565B7F40DD97F7BA /* Build configuration list for PBXNativeTarget "GitStreak" */;
+			buildPhases = (
+				09370770AC5DC46A88FED36D /* Sources */,
+				6EC9AF9AC7C8DB751B845508 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				06C883E656E8BFCAD0CA7E9B /* PBXTargetDependency */,
+			);
+			name = GitStreak;
+			packageProductDependencies = (
+			);
+			productName = GitStreak;
+			productReference = F4FBB069647F8CE94D98C57E /* GitStreak.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F043147747D1F8588AD9FD4F /* GitStreakWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B515F59B6092A34C9A13955F /* Build configuration list for PBXNativeTarget "GitStreakWidgetExtension" */;
+			buildPhases = (
+				F6E1265D24D7013B780B173C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GitStreakWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = GitStreakWidgetExtension;
+			productReference = 27ECD56B6A894FFAD3518DD4 /* GitStreakWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8B11416A7C4117626707730F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					9019E30A1877BED11DD4773F = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					F043147747D1F8588AD9FD4F = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = CBFDA1541DDF4C798A571B7F /* Build configuration list for PBXProject "GitStreak" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 80B905415CCA4926D43E7321;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CD5F5272AAF75E812F5C84FE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9019E30A1877BED11DD4773F /* GitStreak */,
+				F043147747D1F8588AD9FD4F /* GitStreakWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		09370770AC5DC46A88FED36D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B2B252E4044066DB6B829272 /* AppConfig.swift in Sources */,
+				BBB9275DEFB39AD0375A2ED5 /* ContentView.swift in Sources */,
+				CBD78E23828E7422B0DDC8C6 /* ContributionSnapshot.swift in Sources */,
+				54C5A1FE4F334C9779338F11 /* GitHubContributionsService.swift in Sources */,
+				A4EF8C7FE97FD311C2FC1BE0 /* GitStreakApp.swift in Sources */,
+				FA9BC7850245E2CF5C4D8CA8 /* KeychainHelper.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F6E1265D24D7013B780B173C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5536B6C143F329525E9B3F72 /* AppConfig.swift in Sources */,
+				43C146609B5833F1CE1D33EC /* ContributionGridView.swift in Sources */,
+				F26D55410E9C8AAEB7FC1EC5 /* ContributionSnapshot.swift in Sources */,
+				2886B555AA12BB598284F306 /* GitHubContributionsService.swift in Sources */,
+				CF77C4031317317FC23A6848 /* GitStreakWidget.swift in Sources */,
+				3258DB9E92636DF87023E7E4 /* KeychainHelper.swift in Sources */,
+				714642D10E7C850B30630A09 /* Provider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		06C883E656E8BFCAD0CA7E9B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F043147747D1F8588AD9FD4F /* GitStreakWidgetExtension */;
+			targetProxy = FC0B75074458DF97FCEA1FF6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4104425FCDD175421068B947 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6D91138711E598E12949A309 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = GitStreakWidget/GitStreakWidget.entitlements;
+				INFOPLIST_FILE = GitStreakWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyreshamwell.gitstreak.widget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		821F5631DAB95CF93935C70C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = GitStreak/GitStreak.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = GitStreak/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyreshamwell.gitstreak;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		83821E3E09CF0AE6F470C4AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = GitStreak/GitStreak.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = GitStreak/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyreshamwell.gitstreak;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		DC24BB4DF4B76E9623EB8E36 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F9461C17C73736E8782007C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = GitStreakWidget/GitStreakWidget.entitlements;
+				INFOPLIST_FILE = GitStreakWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyreshamwell.gitstreak.widget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B515F59B6092A34C9A13955F /* Build configuration list for PBXNativeTarget "GitStreakWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6D91138711E598E12949A309 /* Debug */,
+				F9461C17C73736E8782007C3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CBFDA1541DDF4C798A571B7F /* Build configuration list for PBXProject "GitStreak" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC24BB4DF4B76E9623EB8E36 /* Debug */,
+				4104425FCDD175421068B947 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EE316A38565B7F40DD97F7BA /* Build configuration list for PBXNativeTarget "GitStreak" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83821E3E09CF0AE6F470C4AF /* Debug */,
+				821F5631DAB95CF93935C70C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8B11416A7C4117626707730F /* Project object */;
+}
