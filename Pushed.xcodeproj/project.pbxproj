@@ -22,6 +22,7 @@
 		97139238B9D1C81F02134616 /* PushedLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */; };
 		9CE98599BD88EEAF9A199E47 /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		9DF03C573CACCBC79895542F /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
+		A697F8D1607FBBA24FAA4BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */; };
 		B01C906815B6BC35B95DF389 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494CC5CB24A472B8B7BAF655 /* Provider.swift */; };
 		B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		D1ED91D53094EABC48C92FD0 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
@@ -58,6 +59,7 @@
 		0A84DCF1096569A79BF32B6F /* Pushed.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pushed.entitlements; sourceTree = "<group>"; };
 		32EF47F729BCDAC67059B748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		356EF749711302E46F9D9993 /* ContributionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionSnapshot.swift; sourceTree = "<group>"; };
+		458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		494CC5CB24A472B8B7BAF655 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		5DFF3012874A2F6D0A471656 /* PushedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedWidget.swift; sourceTree = "<group>"; };
 		5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubContributionsService.swift; sourceTree = "<group>"; };
@@ -69,15 +71,16 @@
 		BDFB708858C0AE4863B86A02 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		C4960F548FF0300E98221870 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
-		D90FB093FB8990E30842ED73 /* Pushed.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pushed.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D90FB093FB8990E30842ED73 /* Pushed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pushed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDAB2D2323DB8F739559D202 /* PushedWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PushedWidget.entitlements; sourceTree = "<group>"; };
-		E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PushedWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushedWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		24C406494BDC8D441F2738E8 /* Pushed */ = {
 			isa = PBXGroup;
 			children = (
+				458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */,
 				9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */,
 				32EF47F729BCDAC67059B748 /* Info.plist */,
 				0A84DCF1096569A79BF32B6F /* Pushed.entitlements */,
@@ -180,6 +183,7 @@
 			buildConfigurationList = 9E1F01362AD8CCA441F2BB57 /* Build configuration list for PBXNativeTarget "Pushed" */;
 			buildPhases = (
 				B3B137DBD81DDDAEFB49F73D /* Sources */,
+				3CE7ECAAD6F2055ECB09360A /* Resources */,
 				0DA17DF42E1EB3BEDEF5C99D /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -204,7 +208,6 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					0C407483F31E508E0C6F6243 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					0ED0FCD986F1304CB5CCAFDB = {
@@ -212,7 +215,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					63D5A005E574E0856C1046CD = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -237,6 +239,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3CE7ECAAD6F2055ECB09360A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A697F8D1607FBBA24FAA4BF6 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4E1B00DC054D822AA80958A3 /* Sources */ = {
@@ -295,6 +308,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushedWidget/PushedWidget.entitlements;
+				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = PushedWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -358,6 +372,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -371,6 +386,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -385,6 +401,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushedWidget/PushedWidget.entitlements;
+				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = PushedWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -404,6 +421,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Pushed/Pushed.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = Pushed/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -452,6 +470,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -471,6 +490,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -488,6 +508,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Pushed/Pushed.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = Pushed/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;

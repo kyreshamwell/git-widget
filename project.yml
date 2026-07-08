@@ -8,6 +8,8 @@ settings:
     SWIFT_VERSION: "5.0"
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "2"
 
 packages: {}
 
@@ -23,6 +25,9 @@ targets:
       properties:
         UILaunchScreen: {}
         CFBundleDisplayName: Pushed
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: Pushed/Pushed.entitlements
       properties:
@@ -34,6 +39,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.pushed
         TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     dependencies:
