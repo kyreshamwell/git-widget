@@ -3,24 +3,43 @@ import Foundation
 struct ContributionDay: Decodable, Identifiable {
     let date: String
     let contributionCount: Int
+    let contributionLevel: String // NONE, FIRST_QUARTILE, SECOND_QUARTILE, THIRD_QUARTILE, FOURTH_QUARTILE
     var id: String { date }
+
+    // 0-4, matching the shade GitHub uses on the profile graph. Falls back to
+    // count-based shading if GitHub ever renames the enum, so an unrecognized
+    // string can't silently grey out active days.
+    var level: Int {
+        switch contributionLevel {
+        case "NONE": return 0
+        case "FIRST_QUARTILE": return 1
+        case "SECOND_QUARTILE": return 2
+        case "THIRD_QUARTILE": return 3
+        case "FOURTH_QUARTILE": return 4
+        default: return contributionCount == 0 ? 0 : min(1 + contributionCount / 3, 4)
+        }
+    }
 }
 
 struct ContributionCalendar {
     let totalContributions: Int
     let days: [ContributionDay]
 
-    var committedToday: Bool {
-        guard let today = days.last(where: { $0.date == ContributionCalendar.todayString }) else {
-            return false
-        }
-        return today.contributionCount > 0
+    var committedToday: Bool { hasContribution(on: Date()) }
+    var currentStreak: Int { currentStreak(asOf: Date()) }
+
+    // The date-parameterized variants exist so tests can pin "today" instead of
+    // depending on the wall clock.
+    func hasContribution(on date: Date) -> Bool {
+        let key = ContributionCalendar.dateFormatter.string(from: date)
+        guard let day = days.last(where: { $0.date == key }) else { return false }
+        return day.contributionCount > 0
     }
 
-    var currentStreak: Int {
+    func currentStreak(asOf now: Date) -> Int {
         let calendar = Calendar(identifier: .gregorian)
         var streak = 0
-        var cursor = Date()
+        var cursor = now
         let byDate = Dictionary(uniqueKeysWithValues: days.map { ($0.date, $0.contributionCount) })
         let formatter = ContributionCalendar.dateFormatter
 
@@ -67,6 +86,7 @@ enum GitHubContributionsService {
               contributionDays {
                 date
                 contributionCount
+                contributionLevel
               }
             }
           }
@@ -90,6 +110,11 @@ enum GitHubContributionsService {
             throw GitHubServiceError.requestFailed
         }
 
+        return try parse(data)
+    }
+
+    /// Split out from the network call so tests can exercise it directly.
+    static func parse(_ data: Data) throws -> ContributionCalendar {
         guard
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
             let dataDict = json["data"] as? [String: Any],

@@ -2,7 +2,7 @@ import SwiftUI
 import WidgetKit
 
 @main
-struct GitStreakApp: App {
+struct PushedApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

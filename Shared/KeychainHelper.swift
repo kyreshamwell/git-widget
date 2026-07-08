@@ -1,13 +1,16 @@
 import Foundation
 import Security
 
+// Note: no kSecAttrAccessGroup in these queries. Both targets list the same
+// shared group first in their keychain-access-groups entitlement, so iOS
+// defaults every keychain call to that group — specifying it manually would
+// require hardcoding the team ID prefix (e.g. "AB12CD34EF.com...shared").
 enum KeychainHelper {
     static func save(_ value: String, account: String) {
         let data = Data(value.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: account,
-            kSecAttrAccessGroup as String: AppConfig.keychainAccessGroup,
         ]
         SecItemDelete(query as CFDictionary)
 
@@ -21,7 +24,6 @@ enum KeychainHelper {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: account,
-            kSecAttrAccessGroup as String: AppConfig.keychainAccessGroup,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
@@ -35,7 +37,6 @@ enum KeychainHelper {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: account,
-            kSecAttrAccessGroup as String: AppConfig.keychainAccessGroup,
         ]
         SecItemDelete(query as CFDictionary)
     }

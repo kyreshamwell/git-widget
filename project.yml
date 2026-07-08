@@ -1,6 +1,6 @@
-name: GitStreak
+name: Pushed
 options:
-  bundleIdPrefix: com.kyreshamwell.gitstreak
+  bundleIdPrefix: com.kyreshamwell.pushed
   deploymentTarget:
     iOS: "17.0"
 settings:
@@ -12,55 +12,79 @@ settings:
 packages: {}
 
 targets:
-  GitStreak:
+  Pushed:
     type: application
     platform: iOS
     sources:
-      - path: GitStreak
+      - path: Pushed
       - path: Shared
     info:
-      path: GitStreak/Info.plist
+      path: Pushed/Info.plist
       properties:
         UILaunchScreen: {}
-        CFBundleDisplayName: GitStreak
+        CFBundleDisplayName: Pushed
     entitlements:
-      path: GitStreak/GitStreak.entitlements
+      path: Pushed/Pushed.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.kyreshamwell.gitstreak
+          - group.com.kyreshamwell.pushed
         keychain-access-groups:
-          - $(AppIdentifierPrefix)com.kyreshamwell.gitstreak.shared
+          - $(AppIdentifierPrefix)com.kyreshamwell.pushed.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.gitstreak
+        PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.pushed
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     dependencies:
-      - target: GitStreakWidgetExtension
+      - target: PushedWidgetExtension
         embed: true
 
-  GitStreakWidgetExtension:
+  PushedWidgetExtension:
     type: app-extension
     platform: iOS
     sources:
-      - path: GitStreakWidget
+      - path: PushedWidget
       - path: Shared
     info:
-      path: GitStreakWidget/Info.plist
+      path: PushedWidget/Info.plist
       properties:
-        CFBundleDisplayName: GitStreak Widget
+        CFBundleDisplayName: Pushed Widget
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
-      path: GitStreakWidget/GitStreakWidget.entitlements
+      path: PushedWidget/PushedWidget.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.com.kyreshamwell.gitstreak
+          - group.com.kyreshamwell.pushed
         keychain-access-groups:
-          - $(AppIdentifierPrefix)com.kyreshamwell.gitstreak.shared
+          - $(AppIdentifierPrefix)com.kyreshamwell.pushed.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.gitstreak.widget
+        PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.pushed.widget
         TARGETED_DEVICE_FAMILY: "1"
         SKIP_INSTALL: true
+
+  # Logic tests: compiles Shared/ directly into the test bundle, so no host
+  # app or signing is needed — plain `xcodebuild test` on any simulator.
+  PushedTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.pushed.tests
+
+schemes:
+  Pushed:
+    build:
+      targets:
+        Pushed: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - PushedTests
