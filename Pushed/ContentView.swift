@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WidgetKit
 
 struct ContentView: View {
@@ -8,6 +9,9 @@ struct ContentView: View {
     @State private var widgetWeeks: Int = AppConfig.widgetWeeks
     @State private var streakIcon: String = AppConfig.streakIcon
     @State private var status: Status = .idle
+    @State private var notifications: NotificationSettings = AppConfig.notificationSettings
+    @State private var permissionDenied = false
+    @State private var tokenExpiry: Date? = AppConfig.tokenExpiry
 
     enum Status: Equatable {
         case idle
@@ -29,10 +33,19 @@ struct ContentView: View {
                         statsSection(snapshot)
                         widgetSection
                     }
+                    notificationSection
                     accountSection
+                    if BuildEnvironment.showsDebugTools {
+                        Section {
+                            NavigationLink("Notification debug") { DebugNotificationsView() }
+                        }
+                    }
                 }
                 .navigationTitle("Pushed")
                 .refreshable { await refresh() }
+                .task {
+                    permissionDenied = await SystemNotificationCenter.authorizationStatus() == .denied
+                }
             } else {
                 setupView
                     .navigationTitle("Pushed")
@@ -56,8 +69,12 @@ struct ContentView: View {
             }
 
             Section("Step 1 · Your username") {
+                Link(destination: URL(string: "https://github.com/settings/profile")!) {
+                    Label("Open your GitHub profile settings", systemImage: "arrow.up.right.square")
+                }
                 bullets([
-                    "It's the name in your profile link: github.com/username",
+                    "Your username is at the top of that page, under Public profile",
+                    "It's also the name in your profile link: github.com/username",
                     "In the GitHub app: tap your profile picture — it's the grey @name under your display name",
                 ])
             }
@@ -109,6 +126,12 @@ struct ContentView: View {
                     "Search for this app and pick a size",
                     "Done — it refreshes itself every couple of hours, no need to open this app again",
                 ])
+            }
+
+            if BuildEnvironment.showsDebugTools {
+                Section {
+                    NavigationLink("Notification debug") { DebugNotificationsView() }
+                }
             }
         }
     }
@@ -169,8 +192,16 @@ struct ContentView: View {
         Section("Stats") {
             LabeledContent("Current streak", value: "\(snapshot.currentStreak) day\(snapshot.currentStreak == 1 ? "" : "s")")
             LabeledContent("Committed today", value: snapshot.committedToday ? "Yes ✓" : "Not yet")
-            LabeledContent("Total this year", value: "\(snapshot.totalContributions)")
-            LabeledContent("Active days (26 wks)", value: "\(snapshot.recentLevels.filter { $0 > 0 }.count)")
+            LabeledContent("Contributions this year", value: "\(snapshot.totalContributions)")
+
+            // Follows the time-range picker, so this always describes the exact
+            // squares drawn above it. The old version hardcoded "26 wks" while
+            // counting the full retained year, and ignored the picker entirely.
+            let window = snapshot.levels(forWeeks: widgetWeeks)
+            LabeledContent(
+                "Green squares",
+                value: "\(window.filter { $0 > 0 }.count) of \(window.count) days"
+            )
             Text("Last synced \(snapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened)). Pull down to refresh.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -217,11 +248,165 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Notifications
+
+    private func time(hour: Int, minute: Int) -> Date {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        components.hour = hour
+        components.minute = minute
+        return Calendar.current.date(from: components) ?? Date()
+    }
+
+    /// Builds the updated settings value and hands it straight to `apply`.
+    /// Deliberately never reads `notifications` back after writing it —
+    /// SwiftUI can return the pre-write value from @State inside the same
+    /// closure, which silently persisted and scheduled the *old* time.
+    private func timeBinding(
+        hour: WritableKeyPath<NotificationSettings, Int>,
+        minute: WritableKeyPath<NotificationSettings, Int>
+    ) -> Binding<Date> {
+        Binding(
+            get: { time(hour: notifications[keyPath: hour], minute: notifications[keyPath: minute]) },
+            set: { newValue in
+                let components = Calendar.current.dateComponents([.hour, .minute], from: newValue)
+                var updated = notifications
+                updated[keyPath: hour] = components.hour ?? 0
+                updated[keyPath: minute] = components.minute ?? 0
+                apply(updated)
+            }
+        )
+    }
+
+    private var notificationSection: some View {
+        Section {
+            Toggle("Daily reminders", isOn: Binding(
+                get: { notifications.enabled },
+                set: { wantsOn in
+                    if wantsOn {
+                        Task { await enableNotifications() }
+                    } else {
+                        var updated = notifications
+                        updated.enabled = false
+                        apply(updated)
+                    }
+                }
+            ))
+
+            if notifications.enabled {
+                DatePicker(
+                    "Midday check-in",
+                    selection: timeBinding(hour: \.middayHour, minute: \.middayMinute),
+                    displayedComponents: .hourAndMinute
+                )
+
+                DatePicker(
+                    "Evening deadline",
+                    selection: timeBinding(hour: \.eveningHour, minute: \.eveningMinute),
+                    displayedComponents: .hourAndMinute
+                )
+
+                Toggle("Streak milestones", isOn: Binding(
+                    get: { notifications.milestonesEnabled },
+                    set: { var updated = notifications; updated.milestonesEnabled = $0; apply(updated) }
+                ))
+
+                Toggle("Token expiry warnings", isOn: Binding(
+                    get: { notifications.tokenAlertsEnabled },
+                    set: { var updated = notifications; updated.tokenAlertsEnabled = $0; apply(updated) }
+                ))
+            }
+
+            if permissionDenied {
+                Text("Notifications are turned off for Pushed in iOS Settings.")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                Button("Open iOS Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            }
+
+            if notifications.enabled && !permissionDenied {
+                Text(nextReminderDescription)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Reminders")
+        } footer: {
+            Text("Nothing fires on days you've already pushed. The midday check-in is a heads-up; the evening one only appears when a streak is genuinely on the line. Quiet days taper off on their own the longer you're away.")
+        }
+    }
+
+    /// Shows exactly what will fire and when, using the same planner the
+    /// scheduler runs. Without this, "nothing happened" is ambiguous between
+    /// working-as-designed (you already pushed), a time that's already passed,
+    /// and an actual bug — which is a miserable thing to debug from the outside.
+    private var nextReminderDescription: String {
+        let plan = NotificationPlanner.plan(
+            NotificationContext(
+                snapshot: snapshot,
+                settings: notifications,
+                tokenExpiry: AppConfig.tokenExpiry,
+                lastCelebratedStreak: AppConfig.lastCelebratedStreak,
+                authFailed: AppConfig.authFailed,
+                lastAuthAlertAt: AppConfig.lastAuthAlertAt,
+                now: Date()
+            )
+        ).filter { $0.id.hasPrefix("daily-") }
+
+        guard let next = plan.min(by: { $0.fireDate < $1.fireDate }) else {
+            if snapshot?.committedToday == true {
+                return "Nothing today — you've already pushed. Reminders resume tomorrow."
+            }
+            if AppConfig.authFailed {
+                return "Paused — reconnect your GitHub token first."
+            }
+            return "Nothing left today. Both times have already passed."
+        }
+        return "Next: \(next.fireDate.formatted(date: .omitted, time: .shortened)) — “\(next.title)”"
+    }
+
+    private func enableNotifications() async {
+        let granted = await SystemNotificationCenter.requestAuthorization()
+        await MainActor.run {
+            permissionDenied = !granted
+            var updated = notifications
+            updated.enabled = granted
+            apply(updated)
+        }
+    }
+
+    /// Single write path for settings. Takes the new value explicitly rather
+    /// than reading it back off @State, and drops the day slots before
+    /// reconciling — they reuse the same identifiers, so the additive diff
+    /// alone would leave the previous fire time in place.
+    private func apply(_ settings: NotificationSettings) {
+        notifications = settings
+        AppConfig.notificationSettings = settings
+        Task {
+            await NotificationScheduler(center: SystemNotificationCenter()).resetDaySlots()
+            await NotificationCoordinator.reconcile()
+        }
+    }
+
     // MARK: - Account (connected state)
 
     private var accountSection: some View {
         Section {
             LabeledContent("Signed in as", value: username)
+
+            if let tokenExpiry {
+                let days = Calendar.current.dateComponents(
+                    [.day], from: Calendar.current.startOfDay(for: Date()),
+                    to: Calendar.current.startOfDay(for: tokenExpiry)
+                ).day ?? 0
+                LabeledContent("Token expires") {
+                    Text(days <= 0 ? "Expired" : "in \(days) day\(days == 1 ? "" : "s")")
+                        .foregroundStyle(days <= 5 ? .red : days <= 10 ? .orange : .secondary)
+                }
+            }
 
             Button("Refresh now") {
                 Task { await refresh() }
@@ -253,27 +438,70 @@ struct ContentView: View {
         KeychainHelper.delete(account: AppConfig.keychainAccount)
         AppConfig.sharedDefaults.removeObject(forKey: AppConfig.usernameDefaultsKey)
         AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)
+        AppConfig.resetNotificationState()
         username = ""
         token = ""
         snapshot = nil
+        tokenExpiry = nil
         status = .idle
+        Task { await NotificationScheduler(center: SystemNotificationCenter()).removeAllManaged() }
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     private func refresh() async {
         guard !username.isEmpty, !token.isEmpty else { return }
+
+        // Reminder times and the streak icon are device preferences and stay
+        // put. Milestone progress, token expiry and auth state belong to the
+        // account — carrying them across a switch would suppress the new
+        // account's milestones using the old one's history.
+        let previous = AppConfig.sharedDefaults.string(forKey: AppConfig.usernameDefaultsKey)
+        let switchedAccount = previous.map { $0.lowercased() != username.lowercased() } ?? false
+        if switchedAccount {
+            AppConfig.resetNotificationState()
+            AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)
+            await NotificationScheduler(center: SystemNotificationCenter()).removeAllManaged()
+        }
+
+        let isFirstConnect = snapshot == nil || switchedAccount
         AppConfig.sharedDefaults.set(username, forKey: AppConfig.usernameDefaultsKey)
         KeychainHelper.save(token, account: AppConfig.keychainAccount)
         await MainActor.run { status = .loading }
 
         do {
-            let calendar = try await GitHubContributionsService.fetchCalendar(username: username, token: token)
-            let newSnapshot = ContributionSnapshot.from(calendar)
+            let fetch = try await GitHubContributionsService.fetch(username: username, token: token)
+            let newSnapshot = ContributionSnapshot.from(fetch.calendar)
             newSnapshot.save()
+
+            AppConfig.authFailed = false
+            if let expiry = fetch.tokenExpiry {
+                AppConfig.tokenExpiry = expiry
+                // A new token means new dates — drop the old ladder so it can
+                // be rebuilt rather than warning about a token that's gone.
+                await NotificationScheduler(center: SystemNotificationCenter()).removeTokenNotifications()
+            }
+
+            // Someone connecting mid-streak shouldn't be congratulated for a
+            // milestone they passed before installing the app.
+            if isFirstConnect {
+                AppConfig.lastCelebratedStreak = NotificationPlanner.milestoneBaseline(
+                    for: newSnapshot, asOf: Date()
+                )
+            }
+
+            await NotificationCoordinator.reconcile(snapshot: newSnapshot)
+
             await MainActor.run {
                 snapshot = newSnapshot
+                tokenExpiry = AppConfig.tokenExpiry
                 status = .success
                 WidgetCenter.shared.reloadAllTimelines()
+            }
+        } catch GitHubServiceError.unauthorized {
+            AppConfig.authFailed = true
+            await NotificationCoordinator.reconcile()
+            await MainActor.run {
+                status = .failed("GitHub rejected that token — it may have expired. Generate a new one and paste it here.")
             }
         } catch {
             await MainActor.run {

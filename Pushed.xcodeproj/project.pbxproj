@@ -7,19 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09722BDE650C810F0E7EB3DB /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */; };
+		10AB792089C6AB4C0F73F2A8 /* BuildEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */; };
 		11529A5CE359406B011535D5 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
+		1795A490CA93D6348166C3F6 /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
 		1B75521AA8DC66D091A845B2 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
 		1DB35E6904F230C16698752A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */; };
+		21AB916F836420F91F6D774C /* BuildEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */; };
 		240C40E9A8A110824C24CE2A /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
+		35FC7D583B39BE87C4674B91 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */; };
+		3DE3FA8FB458882A96DEE9BE /* NotificationPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */; };
 		43AD45A8A07D25486AF646E0 /* PushedWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4B5919075F71A13AE08240EE /* PushedWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFF3012874A2F6D0A471656 /* PushedWidget.swift */; };
+		53E07968FF007B7208BE40AB /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */; };
 		5AC69282B81DE682D3DE5EDB /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
 		5B18F3DC34EAC99DF06D4651 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
+		5CAF90078DF278E96B95B166 /* NotificationSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */; };
+		5D790DA6212FF33DFECC991D /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
+		78C8D99735E2970EB8018E0D /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
 		82A64652E3159D82E7357E26 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
 		8521D48C139C9CFAB066C8CE /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
 		9602F674A015E2B9A1815050 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
 		96B7C88291FE29001EFFFBC9 /* PushedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */; };
 		97139238B9D1C81F02134616 /* PushedLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */; };
+		99F313A534206D2C61BF24F8 /* BuildEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */; };
 		9CE98599BD88EEAF9A199E47 /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		9DF03C573CACCBC79895542F /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
 		A697F8D1607FBBA24FAA4BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */; };
@@ -27,8 +38,10 @@
 		B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		D1ED91D53094EABC48C92FD0 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
 		D941A6B29C44C6C5BBB2D8BA /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
+		E3CA1FD2716AA626E1065F6F /* SelfCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */; };
 		ED2C4761C5DDCF6E65DDD184 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
 		F733D5133C936D68331BCFDD /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
+		F79F449D798D153E08CF1780 /* DebugNotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C90674B989E8A692A52344 /* DebugNotificationsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,20 +70,27 @@
 
 /* Begin PBXFileReference section */
 		0A84DCF1096569A79BF32B6F /* Pushed.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pushed.entitlements; sourceTree = "<group>"; };
+		0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		32EF47F729BCDAC67059B748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		356EF749711302E46F9D9993 /* ContributionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionSnapshot.swift; sourceTree = "<group>"; };
 		458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		494CC5CB24A472B8B7BAF655 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		5DFF3012874A2F6D0A471656 /* PushedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedWidget.swift; sourceTree = "<group>"; };
 		5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubContributionsService.swift; sourceTree = "<group>"; };
+		65C90674B989E8A692A52344 /* DebugNotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugNotificationsView.swift; sourceTree = "<group>"; };
+		664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlanner.swift; sourceTree = "<group>"; };
 		67E6FC3631B5B27834A19415 /* PushedTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PushedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedApp.swift; sourceTree = "<group>"; };
 		768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionGridView.swift; sourceTree = "<group>"; };
 		8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedLogicTests.swift; sourceTree = "<group>"; };
 		9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfCheck.swift; sourceTree = "<group>"; };
+		A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildEnvironment.swift; sourceTree = "<group>"; };
+		BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSchedulerTests.swift; sourceTree = "<group>"; };
 		BDFB708858C0AE4863B86A02 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		C4960F548FF0300E98221870 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlannerTests.swift; sourceTree = "<group>"; };
 		D90FB093FB8990E30842ED73 /* Pushed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pushed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDAB2D2323DB8F739559D202 /* PushedWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PushedWidget.entitlements; sourceTree = "<group>"; };
 		E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushedWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,9 +102,11 @@
 			children = (
 				458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */,
 				9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */,
+				65C90674B989E8A692A52344 /* DebugNotificationsView.swift */,
 				32EF47F729BCDAC67059B748 /* Info.plist */,
 				0A84DCF1096569A79BF32B6F /* Pushed.entitlements */,
 				6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */,
+				9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */,
 			);
 			path = Pushed;
 			sourceTree = "<group>";
@@ -103,10 +125,13 @@
 			isa = PBXGroup;
 			children = (
 				BDFB708858C0AE4863B86A02 /* AppConfig.swift */,
+				A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */,
 				768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */,
 				356EF749711302E46F9D9993 /* ContributionSnapshot.swift */,
 				5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */,
 				C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */,
+				664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */,
+				0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -125,6 +150,8 @@
 		B4B5CB0CD0F4E33A093ED935 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */,
+				BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */,
 				8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */,
 			);
 			path = Tests;
@@ -257,10 +284,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D1ED91D53094EABC48C92FD0 /* AppConfig.swift in Sources */,
+				21AB916F836420F91F6D774C /* BuildEnvironment.swift in Sources */,
 				B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */,
 				5AC69282B81DE682D3DE5EDB /* ContributionSnapshot.swift in Sources */,
 				11529A5CE359406B011535D5 /* GitHubContributionsService.swift in Sources */,
 				9DF03C573CACCBC79895542F /* KeychainHelper.swift in Sources */,
+				1795A490CA93D6348166C3F6 /* NotificationPlanner.swift in Sources */,
+				3DE3FA8FB458882A96DEE9BE /* NotificationPlannerTests.swift in Sources */,
+				09722BDE650C810F0E7EB3DB /* NotificationScheduler.swift in Sources */,
+				5CAF90078DF278E96B95B166 /* NotificationSchedulerTests.swift in Sources */,
 				97139238B9D1C81F02134616 /* PushedLogicTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -270,12 +302,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED2C4761C5DDCF6E65DDD184 /* AppConfig.swift in Sources */,
+				99F313A534206D2C61BF24F8 /* BuildEnvironment.swift in Sources */,
 				1DB35E6904F230C16698752A /* ContentView.swift in Sources */,
 				D941A6B29C44C6C5BBB2D8BA /* ContributionGridView.swift in Sources */,
 				5B18F3DC34EAC99DF06D4651 /* ContributionSnapshot.swift in Sources */,
+				F79F449D798D153E08CF1780 /* DebugNotificationsView.swift in Sources */,
 				82A64652E3159D82E7357E26 /* GitHubContributionsService.swift in Sources */,
 				240C40E9A8A110824C24CE2A /* KeychainHelper.swift in Sources */,
+				78C8D99735E2970EB8018E0D /* NotificationPlanner.swift in Sources */,
+				53E07968FF007B7208BE40AB /* NotificationScheduler.swift in Sources */,
 				96B7C88291FE29001EFFFBC9 /* PushedApp.swift in Sources */,
+				E3CA1FD2716AA626E1065F6F /* SelfCheck.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,10 +321,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				F733D5133C936D68331BCFDD /* AppConfig.swift in Sources */,
+				10AB792089C6AB4C0F73F2A8 /* BuildEnvironment.swift in Sources */,
 				9CE98599BD88EEAF9A199E47 /* ContributionGridView.swift in Sources */,
 				9602F674A015E2B9A1815050 /* ContributionSnapshot.swift in Sources */,
 				8521D48C139C9CFAB066C8CE /* GitHubContributionsService.swift in Sources */,
 				1B75521AA8DC66D091A845B2 /* KeychainHelper.swift in Sources */,
+				5D790DA6212FF33DFECC991D /* NotificationPlanner.swift in Sources */,
+				35FC7D583B39BE87C4674B91 /* NotificationScheduler.swift in Sources */,
 				B01C906815B6BC35B95DF389 /* Provider.swift in Sources */,
 				4B5919075F71A13AE08240EE /* PushedWidget.swift in Sources */,
 			);
@@ -326,6 +366,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -372,7 +413,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -470,7 +511,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -526,6 +567,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

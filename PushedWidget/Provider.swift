@@ -14,6 +14,10 @@ struct Provider: TimelineProvider {
         completion(StreakEntry(date: Date(), snapshot: ContributionSnapshot.load()))
     }
 
+    /// Doubles as the notification reconciliation hook. This is the only code
+    /// in the app iOS runs on a schedule with fresh GitHub data, so it's what
+    /// cancels "you haven't pushed today" once you actually have — no extra
+    /// background budget needed, it was already running for the widget.
     func getTimeline(in context: Context, completion: @escaping (Timeline<StreakEntry>) -> Void) {
         let username = AppConfig.sharedDefaults.string(forKey: AppConfig.usernameDefaultsKey)
         let token = KeychainHelper.read(account: AppConfig.keychainAccount)
@@ -25,18 +29,31 @@ struct Provider: TimelineProvider {
         }
 
         Task {
-            let nextRefresh = Date().addingTimeInterval(2 * 3600)
+            let now = Date()
+            var snapshot = ContributionSnapshot.load()
+
             do {
-                let calendar = try await GitHubContributionsService.fetchCalendar(username: username, token: token)
-                let snapshot = ContributionSnapshot.from(calendar)
-                snapshot.save()
-                let entry = StreakEntry(date: Date(), snapshot: snapshot)
-                completion(Timeline(entries: [entry], policy: .after(nextRefresh)))
+                let fetch = try await GitHubContributionsService.fetch(username: username, token: token)
+                let fresh = ContributionSnapshot.from(fetch.calendar)
+                fresh.save()
+                snapshot = fresh
+
+                if let expiry = fetch.tokenExpiry { AppConfig.tokenExpiry = expiry }
+                AppConfig.authFailed = false
+            } catch GitHubServiceError.unauthorized {
+                AppConfig.authFailed = true
             } catch {
-                // Fall back to the last known snapshot so the widget doesn't go blank on a network hiccup.
-                let entry = StreakEntry(date: Date(), snapshot: ContributionSnapshot.load())
-                completion(Timeline(entries: [entry], policy: .after(nextRefresh)))
+                // Network hiccup — fall back to the last known snapshot so the
+                // widget doesn't go blank. The planner's freshness guard takes
+                // it from here if this keeps failing.
             }
+
+            let outcome = await NotificationCoordinator.reconcile(snapshot: snapshot, now: now)
+            let entry = StreakEntry(date: now, snapshot: snapshot)
+            completion(Timeline(
+                entries: [entry],
+                policy: .after(now.addingTimeInterval(outcome.refreshInterval(now: now)))
+            ))
         }
     }
 }

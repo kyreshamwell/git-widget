@@ -20,8 +20,10 @@ struct ContributionGridView: View {
         Color(red: 0.129, green: 0.431, blue: 0.224), // #216e39
     ]
 
+    // Level 0 is lifted from GitHub's #161b22: that shade is darker than the
+    // iOS dark-mode widget background, so empty days vanished into the platter.
     private static let darkPalette: [Color] = [
-        Color(red: 0.086, green: 0.106, blue: 0.133), // #161b22
+        Color(red: 0.184, green: 0.212, blue: 0.247), // #2f3640-ish, visible on dark platters
         Color(red: 0.055, green: 0.267, blue: 0.161), // #0e4429
         Color(red: 0.000, green: 0.427, blue: 0.196), // #006d32
         Color(red: 0.149, green: 0.651, blue: 0.255), // #26a641

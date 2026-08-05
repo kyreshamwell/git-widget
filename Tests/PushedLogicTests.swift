@@ -59,6 +59,25 @@ final class PushedLogicTests: XCTestCase {
         XCTAssertEqual(quiet.level, 0)
     }
 
+    // MARK: - Token expiry header
+
+    func testParsesTheRealTokenExpiryHeaderFormat() throws {
+        // Verbatim from GitHub's GraphQL response headers.
+        let parsed = try XCTUnwrap(
+            GitHubContributionsService.parseTokenExpiry("2026-09-04 15:17:49 UTC"),
+            "GitHub's actual header format must parse, or expiry warnings never fire"
+        )
+        let expected = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-09-04T15:17:49Z"))
+        XCTAssertEqual(parsed.timeIntervalSince1970, expected.timeIntervalSince1970, accuracy: 1)
+    }
+
+    func testUnparseableExpiryDegradesToNoWarningsRatherThanAWrongDate() {
+        XCTAssertNil(GitHubContributionsService.parseTokenExpiry(nil))
+        XCTAssertNil(GitHubContributionsService.parseTokenExpiry(""))
+        XCTAssertNil(GitHubContributionsService.parseTokenExpiry("   "))
+        XCTAssertNil(GitHubContributionsService.parseTokenExpiry("never"))
+    }
+
     // MARK: - Streak math
 
     func testStreakHoldsWhenTodayHasNoCommitYet() {

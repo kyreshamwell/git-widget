@@ -70,7 +70,19 @@ struct ContributionCalendar {
 enum GitHubServiceError: Error {
     case missingCredentials
     case requestFailed
+    /// The token was rejected — expired or revoked. Distinct from a network
+    /// blip because it's the one failure the user has to act on, and the one
+    /// that must silence commit nudges (data we can't read can't be nagged about).
+    case unauthorized
     case decodingFailed
+}
+
+/// A fetch carries the token's own lifecycle alongside the contribution data —
+/// GitHub reports the expiry date on every authenticated response, so the
+/// 10/5/1-day warnings cost no extra request.
+struct CalendarFetch {
+    let calendar: ContributionCalendar
+    let tokenExpiry: Date?
 }
 
 enum GitHubContributionsService {
@@ -95,7 +107,11 @@ enum GitHubContributionsService {
     }
     """
 
-    static func fetchCalendar(username: String, token: String) async throws -> ContributionCalendar {
+    /// Header GitHub sets on authenticated responses when the token has an
+    /// expiry date. Absent for never-expiring tokens.
+    static let expiryHeader = "github-authentication-token-expiration"
+
+    static func fetch(username: String, token: String) async throws -> CalendarFetch {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -106,11 +122,47 @@ enum GitHubContributionsService {
         ])
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+        guard let http = response as? HTTPURLResponse else {
+            throw GitHubServiceError.requestFailed
+        }
+        if http.statusCode == 401 || http.statusCode == 403 {
+            throw GitHubServiceError.unauthorized
+        }
+        guard http.statusCode == 200 else {
             throw GitHubServiceError.requestFailed
         }
 
-        return try parse(data)
+        return CalendarFetch(
+            calendar: try parse(data),
+            tokenExpiry: parseTokenExpiry(http.value(forHTTPHeaderField: expiryHeader))
+        )
+    }
+
+    static func fetchCalendar(username: String, token: String) async throws -> ContributionCalendar {
+        try await fetch(username: username, token: token).calendar
+    }
+
+    /// GitHub has shipped this header in more than one shape over the years, so
+    /// try the known formats rather than trusting one. An unparseable value
+    /// degrades to "no expiry known", which just means no early warnings —
+    /// never a wrong date.
+    static func parseTokenExpiry(_ raw: String?) -> Date? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return nil }
+
+        for format in ["yyyy-MM-dd HH:mm:ss ZZZ", "yyyy-MM-dd HH:mm:ss Z", "yyyy-MM-dd'T'HH:mm:ssZ"] {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = format
+            if let date = formatter.date(from: raw) { return date }
+        }
+
+        let iso = ISO8601DateFormatter()
+        if let date = iso.date(from: raw) { return date }
+
+        let rfc = DateFormatter()
+        rfc.locale = Locale(identifier: "en_US_POSIX")
+        rfc.dateFormat = "EEE, dd MMM yyyy HH:mm:ss ZZZ"
+        return rfc.date(from: raw)
     }
 
     /// Split out from the network call so tests can exercise it directly.
