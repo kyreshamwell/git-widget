@@ -27,6 +27,7 @@
 		78C8D99735E2970EB8018E0D /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
 		82A64652E3159D82E7357E26 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
 		8521D48C139C9CFAB066C8CE /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
+		8BA850EF7E7F4C31EBDE7761 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F70CE2C5FB12EE2315624FD1 /* PrivacyInfo.xcprivacy */; };
 		9602F674A015E2B9A1815050 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
 		96B7C88291FE29001EFFFBC9 /* PushedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */; };
 		97139238B9D1C81F02134616 /* PushedLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */; };
@@ -36,6 +37,7 @@
 		A697F8D1607FBBA24FAA4BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */; };
 		B01C906815B6BC35B95DF389 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494CC5CB24A472B8B7BAF655 /* Provider.swift */; };
 		B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
+		BF53E5D80750D8E1BA4371D1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */; };
 		D1ED91D53094EABC48C92FD0 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
 		D941A6B29C44C6C5BBB2D8BA /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		E3CA1FD2716AA626E1065F6F /* SelfCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */; };
@@ -77,6 +79,7 @@
 		494CC5CB24A472B8B7BAF655 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		5DFF3012874A2F6D0A471656 /* PushedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedWidget.swift; sourceTree = "<group>"; };
 		5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubContributionsService.swift; sourceTree = "<group>"; };
+		621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		65C90674B989E8A692A52344 /* DebugNotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugNotificationsView.swift; sourceTree = "<group>"; };
 		664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlanner.swift; sourceTree = "<group>"; };
 		67E6FC3631B5B27834A19415 /* PushedTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PushedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -91,9 +94,10 @@
 		C4960F548FF0300E98221870 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlannerTests.swift; sourceTree = "<group>"; };
-		D90FB093FB8990E30842ED73 /* Pushed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pushed.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D90FB093FB8990E30842ED73 /* Pushed.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pushed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDAB2D2323DB8F739559D202 /* PushedWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PushedWidget.entitlements; sourceTree = "<group>"; };
-		E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PushedWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PushedWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F70CE2C5FB12EE2315624FD1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -104,6 +108,7 @@
 				9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */,
 				65C90674B989E8A692A52344 /* DebugNotificationsView.swift */,
 				32EF47F729BCDAC67059B748 /* Info.plist */,
+				621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */,
 				0A84DCF1096569A79BF32B6F /* Pushed.entitlements */,
 				6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */,
 				9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */,
@@ -161,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				C4960F548FF0300E98221870 /* Info.plist */,
+				F70CE2C5FB12EE2315624FD1 /* PrivacyInfo.xcprivacy */,
 				494CC5CB24A472B8B7BAF655 /* Provider.swift */,
 				DDAB2D2323DB8F739559D202 /* PushedWidget.entitlements */,
 				5DFF3012874A2F6D0A471656 /* PushedWidget.swift */,
@@ -176,6 +182,7 @@
 			buildConfigurationList = FEFF2B43639A2CE973AECF1A /* Build configuration list for PBXNativeTarget "PushedWidgetExtension" */;
 			buildPhases = (
 				F018B126AF4B86396EEC2CDD /* Sources */,
+				8CE3EC260E73F53EBE96496D /* Resources */,
 			);
 			buildRules = (
 			);
@@ -235,13 +242,15 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					0C407483F31E508E0C6F6243 = {
+						DevelopmentTeam = KJ39PZWS6C;
 						ProvisioningStyle = Automatic;
 					};
 					0ED0FCD986F1304CB5CCAFDB = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = KJ39PZWS6C;
 						ProvisioningStyle = Automatic;
 					};
 					63D5A005E574E0856C1046CD = {
+						DevelopmentTeam = KJ39PZWS6C;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -273,6 +282,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				A697F8D1607FBBA24FAA4BF6 /* Assets.xcassets in Resources */,
+				BF53E5D80750D8E1BA4371D1 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8CE3EC260E73F53EBE96496D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8BA850EF7E7F4C31EBDE7761 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,7 +366,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushedWidget/PushedWidget.entitlements;
-				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = PushedWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -413,9 +430,9 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -442,7 +459,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PushedWidget/PushedWidget.entitlements;
-				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = PushedWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -462,10 +478,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Pushed/Pushed.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = Pushed/Info.plist;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -511,9 +524,9 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -549,10 +562,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Pushed/Pushed.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				INFOPLIST_FILE = Pushed/Info.plist;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

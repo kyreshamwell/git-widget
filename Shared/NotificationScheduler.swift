@@ -126,11 +126,10 @@ struct SystemNotificationCenter: NotificationCentering {
         content.body = planned.body
         content.sound = .default
 
-        let interval = max(1, planned.fireDate.timeIntervalSinceNow)
         let request = UNNotificationRequest(
             identifier: planned.id,
             content: content,
-            trigger: UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+            trigger: SystemNotificationCenter.trigger(for: planned.fireDate)
         )
         do {
             try await center.add(request)
@@ -143,6 +142,36 @@ struct SystemNotificationCenter: NotificationCentering {
 
     /// Kept so a rejected add can be inspected rather than vanishing.
     nonisolated(unsafe) static var lastAddError: String?
+
+    /// An interval trigger counts elapsed seconds, so a token warning queued ten
+    /// days out lands an hour early or late if a DST boundary falls in between —
+    /// the planner deliberately anchors those to 10am and the trigger would
+    /// quietly move them. Matching on calendar components instead keeps the
+    /// wall-clock time the planner chose.
+    ///
+    /// Near-term fires stay on the interval trigger: a milestone is scheduled
+    /// seconds from now, and rounding that to a component match is a race
+    /// against the second hand for no benefit.
+    static func trigger(for fireDate: Date) -> UNNotificationTrigger {
+        let delay = fireDate.timeIntervalSinceNow
+        guard delay > 300 else {
+            return UNTimeIntervalNotificationTrigger(timeInterval: max(1, delay), repeats: false)
+        }
+        let components = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second], from: fireDate
+        )
+        return UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+    }
+
+    /// Both trigger kinds expose `nextTriggerDate()`, but not through a shared
+    /// type — so anything reading a queued fire time has to ask both.
+    static func nextFireDate(of trigger: UNNotificationTrigger?) -> Date? {
+        switch trigger {
+        case let calendar as UNCalendarNotificationTrigger: return calendar.nextTriggerDate()
+        case let interval as UNTimeIntervalNotificationTrigger: return interval.nextTriggerDate()
+        default: return nil
+        }
+    }
 
     func remove(identifiers: [String]) async {
         center.removePendingNotificationRequests(withIdentifiers: identifiers)

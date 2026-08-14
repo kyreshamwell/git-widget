@@ -171,8 +171,9 @@ struct DebugNotificationsView: View {
     }
 
     private func fireDescription(_ request: UNNotificationRequest) -> String {
-        guard let trigger = request.trigger as? UNTimeIntervalNotificationTrigger,
-              let next = trigger.nextTriggerDate() else { return "no trigger" }
+        guard let next = SystemNotificationCenter.nextFireDate(of: request.trigger) else {
+            return "no trigger"
+        }
         return next.formatted(date: .abbreviated, time: .standard)
     }
 
@@ -180,8 +181,8 @@ struct DebugNotificationsView: View {
         let requests = await UNUserNotificationCenter.current().pendingNotificationRequests()
         await MainActor.run {
             pending = requests.sorted {
-                ($0.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate() ?? .distantFuture
-                    < ($1.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate() ?? .distantFuture
+                SystemNotificationCenter.nextFireDate(of: $0.trigger) ?? .distantFuture
+                    < SystemNotificationCenter.nextFireDate(of: $1.trigger) ?? .distantFuture
             }
         }
     }

@@ -16,10 +16,18 @@ let variant = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "dark
 let outPath = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : "icon-\(variant).png"
 
 let size = 1024
+
+// Only the tinted variant is allowed an alpha channel — iOS composites it over
+// its own gradient. The App Store icon must be fully opaque, and a light/dark
+// PNG that merely *looks* opaque still trips ITMS-90717 if it carries an alpha
+// channel at all, so those two are rendered without one rather than painted
+// over a background and left translucent-capable.
 let ctx = CGContext(
     data: nil, width: size, height: size, bitsPerComponent: 8, bytesPerRow: 0,
     space: CGColorSpace(name: CGColorSpace.sRGB)!,
-    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    bitmapInfo: (variant == "tinted"
+        ? CGImageAlphaInfo.premultipliedLast
+        : CGImageAlphaInfo.noneSkipLast).rawValue
 )!
 
 func color(_ hex: UInt32, alpha: CGFloat = 1) -> CGColor {

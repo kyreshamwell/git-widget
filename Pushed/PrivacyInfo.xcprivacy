@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Pushed collects nothing and has no servers, so both collection arrays are
+	  empty. The one required-reason API it touches is UserDefaults:
+
+	    1C8F.1 — the app group suite (AppConfig.sharedDefaults), read and written
+	             by the app and its widget extension, which are members of
+	             group.com.kyreshamwell.pushed.
+	    CA92.1 — UserDefaults.standard, the fallback that suite initialiser
+	             degrades to if the group container is ever unavailable.
+
+	  The widget extension carries its own copy of this file: Shared/ compiles
+	  into both bundles, so both make the same calls, and Apple checks each
+	  bundle independently.
+	-->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>1C8F.1</string>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

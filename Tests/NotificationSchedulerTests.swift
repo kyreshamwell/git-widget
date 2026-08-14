@@ -1,3 +1,4 @@
+import UserNotifications
 import XCTest
 
 private final class FakeCenter: NotificationCentering {
@@ -220,5 +221,41 @@ final class NotificationSchedulerTests: XCTestCase {
         XCTAssertEqual(midday?.title, "18-day streak")
         let evening = center.added.first { $0.id.hasPrefix("daily-evening") }
         XCTAssertEqual(evening?.title, "18 days on the line")
+    }
+
+    // MARK: - Trigger construction
+    //
+    // The planner picks a wall-clock time; an interval trigger counts elapsed
+    // seconds instead, so a DST boundary between scheduling and firing moves a
+    // 10am token warning to 9am or 11am.
+
+    func testDistantFiresAreAnchoredToTheWallClockNotAnElapsedInterval() throws {
+        let target = Calendar.current.date(byAdding: .day, value: 10, to: Date())!
+        let trigger = try XCTUnwrap(
+            SystemNotificationCenter.trigger(for: target) as? UNCalendarNotificationTrigger
+        )
+
+        XCTAssertEqual(trigger.dateComponents.hour, Calendar.current.component(.hour, from: target))
+        XCTAssertEqual(trigger.dateComponents.minute, Calendar.current.component(.minute, from: target))
+        XCTAssertFalse(trigger.repeats)
+    }
+
+    func testImminentFiresKeepTheIntervalTrigger() throws {
+        // Milestones are scheduled seconds out; matching those on calendar
+        // components is a race against the second hand for no benefit.
+        let trigger = try XCTUnwrap(
+            SystemNotificationCenter.trigger(for: Date().addingTimeInterval(5))
+                as? UNTimeIntervalNotificationTrigger
+        )
+        XCTAssertLessThanOrEqual(trigger.timeInterval, 5)
+        XCTAssertGreaterThanOrEqual(trigger.timeInterval, 1)
+    }
+
+    func testAFireTimeAlreadyInThePastIsClampedRatherThanRejected() throws {
+        let trigger = try XCTUnwrap(
+            SystemNotificationCenter.trigger(for: Date().addingTimeInterval(-600))
+                as? UNTimeIntervalNotificationTrigger
+        )
+        XCTAssertEqual(trigger.timeInterval, 1, "iOS rejects a non-positive interval outright")
     }
 }

@@ -88,6 +88,18 @@ struct ContributionGridView: View {
         return kept
     }
 
+    /// Several hundred coloured rectangles are individually meaningless and
+    /// unnavigable, so the grid is collapsed into one element that states what
+    /// a sighted reader takes from the shape of it.
+    private var accessibilityDescription: String {
+        let active = levels.filter { $0 > 0 }.count
+        var text = "Contribution graph. \(active) of \(levels.count) days with contributions"
+        if let endDate {
+            text += ", through \(endDate.formatted(date: .abbreviated, time: .omitted))"
+        }
+        return text + "."
+    }
+
     var body: some View {
         GeometryReader { geo in
             let columns = weeks.count
@@ -155,5 +167,7 @@ struct ContributionGridView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // center in available space
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityDescription)
     }
 }

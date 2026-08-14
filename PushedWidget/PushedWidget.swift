@@ -26,7 +26,7 @@ struct PushedWidgetEntryView: View {
     private func smallView(_ snapshot: ContributionSnapshot) -> some View {
         VStack(spacing: 6) {
             ContributionGridView(levels: snapshot.levels(forWeeks: min(AppConfig.widgetWeeks, 9)))
-            footer(snapshot)
+            footer(snapshot, compact: true)
         }
     }
 
@@ -43,22 +43,41 @@ struct PushedWidgetEntryView: View {
         }
     }
 
-    private func footer(_ snapshot: ContributionSnapshot) -> some View {
+    /// The small family is ~155pt wide, which can't hold a streak label, a dot
+    /// and "committed today" without truncating the last one. The dot already
+    /// carries that state — green for pushed, orange for not — so at this size
+    /// the words are dropped rather than clipped mid-syllable.
+    private func footer(_ snapshot: ContributionSnapshot, compact: Bool = false) -> some View {
         let icon = AppConfig.streakIcon
+        let streak = snapshot.currentStreak
+        let label = icon == "none"
+            ? (compact ? "\(streak) day\(streak == 1 ? "" : "s")" : "\(streak)-day streak")
+            : "\(icon) \(streak)"
+
         return HStack(spacing: 4) {
-            Text(icon == "none"
-                 ? "\(snapshot.currentStreak)-day streak"
-                 : "\(icon) \(snapshot.currentStreak)")
+            Text(label)
                 .font(.caption.bold())
-            Spacer()
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Spacer(minLength: 4)
             Circle()
                 .fill(snapshot.committedToday ? Color.green : Color.orange)
                 .frame(width: 7, height: 7)
-            Text(snapshot.committedToday ? "committed today" : "not yet today")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+            if !compact {
+                Text(snapshot.committedToday ? "committed today" : "not yet today")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
         }
+        // The dot is the only thing carrying "pushed today?" at the small size,
+        // and a colour says nothing to VoiceOver — so the footer states it.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            "\(streak) day\(streak == 1 ? "" : "s") streak. "
+            + (snapshot.committedToday ? "Committed today." : "Not committed yet today.")
+        )
     }
 }
 

@@ -6,10 +6,12 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    DEVELOPMENT_TEAM: ""
+    # Set here rather than in Xcode — `xcodegen generate` rewrites the pbxproj
+    # from this file, so a team picked in the UI is wiped on the next run.
+    DEVELOPMENT_TEAM: KJ39PZWS6C
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "7"
+    CURRENT_PROJECT_VERSION: "9"
 
 packages: {}
 
@@ -32,6 +34,14 @@ targets:
           - fetch
         BGTaskSchedulerPermittedIdentifiers:
           - com.kyreshamwell.pushed.refresh
+        # These two live here, not in INFOPLIST_KEY_* build settings — those are
+        # only consulted when GENERATE_INFOPLIST_FILE is on, and this target ships
+        # an explicit plist. As build settings they compiled fine and did nothing,
+        # which left the app free to rotate into a landscape the grid never sized for.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
     entitlements:
       path: Pushed/Pushed.entitlements
       properties:
@@ -44,8 +54,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.kyreshamwell.pushed
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     dependencies:
       - target: PushedWidgetExtension
         embed: true

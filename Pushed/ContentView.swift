@@ -3,6 +3,7 @@ import UIKit
 import WidgetKit
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var username: String = AppConfig.sharedDefaults.string(forKey: AppConfig.usernameDefaultsKey) ?? ""
     @State private var token: String = KeychainHelper.read(account: AppConfig.keychainAccount) ?? ""
     @State private var snapshot: ContributionSnapshot? = ContributionSnapshot.load()
@@ -43,14 +44,25 @@ struct ContentView: View {
                 }
                 .navigationTitle("Pushed")
                 .refreshable { await refresh() }
-                .task {
-                    permissionDenied = await SystemNotificationCenter.authorizationStatus() == .denied
-                }
+                .task { await refreshPermissionState() }
             } else {
                 setupView
                     .navigationTitle("Pushed")
             }
         }
+        // Turning notifications back on happens in iOS Settings, i.e. outside
+        // this app — so the only moment we can notice is the return trip. `.task`
+        // alone doesn't re-run on foreground, which left the red "notifications
+        // are off" warning up until the next cold launch.
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await refreshPermissionState() }
+        }
+    }
+
+    private func refreshPermissionState() async {
+        let denied = await SystemNotificationCenter.authorizationStatus() == .denied
+        await MainActor.run { permissionDenied = denied }
     }
 
     // MARK: - Setup (first launch / signed out)
@@ -465,7 +477,18 @@ struct ContentView: View {
 
         let isFirstConnect = snapshot == nil || switchedAccount
         AppConfig.sharedDefaults.set(username, forKey: AppConfig.usernameDefaultsKey)
-        KeychainHelper.save(token, account: AppConfig.keychainAccount)
+
+        // Bail before the network call rather than after: without the token in
+        // the Keychain the widget and the background refresh have nothing to
+        // read, so a "successful" fetch here would only paint a working app
+        // around a widget that can never update.
+        guard KeychainHelper.save(token, account: AppConfig.keychainAccount) else {
+            let code = KeychainHelper.lastSaveStatus.map { " (Keychain error \($0))" } ?? ""
+            await MainActor.run {
+                status = .failed("Couldn't save your token to the iOS Keychain\(code). Try again, or reinstall the app if it keeps failing.")
+            }
+            return
+        }
         await MainActor.run { status = .loading }
 
         do {
@@ -503,9 +526,23 @@ struct ContentView: View {
             await MainActor.run {
                 status = .failed("GitHub rejected that token — it may have expired. Generate a new one and paste it here.")
             }
+        } catch GitHubServiceError.userNotFound {
+            await MainActor.run {
+                status = .failed("GitHub has no user named “\(username)”. Check the spelling — it's the name in your profile link, github.com/username.")
+            }
+        } catch GitHubServiceError.rateLimited {
+            // Explicitly *not* an auth failure, so authFailed stays as it was
+            // and the reminder ladder keeps running on the cached snapshot.
+            await MainActor.run {
+                status = .failed("GitHub is rate-limiting requests right now. Wait a few minutes and try again.")
+            }
+        } catch GitHubServiceError.apiError(let message) {
+            await MainActor.run {
+                status = .failed("GitHub returned an error: \(message)")
+            }
         } catch {
             await MainActor.run {
-                status = .failed("Couldn't fetch contributions. Check username/token.")
+                status = .failed("Couldn't reach GitHub. Check your connection and try again.")
             }
         }
     }

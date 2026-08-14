@@ -230,7 +230,7 @@ enum SelfCheck {
     }
 
     private static func fireDate(_ request: UNNotificationRequest?) -> Date? {
-        (request?.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate()
+        SystemNotificationCenter.nextFireDate(of: request?.trigger)
     }
 }
 #endif

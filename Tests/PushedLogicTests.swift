@@ -46,8 +46,74 @@ final class PushedLogicTests: XCTestCase {
     }
 
     func testParseThrowsOnMalformedResponse() {
-        let bad = #"{"data":{"user":null}}"#.data(using: .utf8)!
+        let bad = #"{"nonsense":true}"#.data(using: .utf8)!
         XCTAssertThrowsError(try GitHubContributionsService.parse(bad))
+    }
+
+    // MARK: - Naming the failure
+    //
+    // A wrong username, a throttled hour and a dead network all used to arrive
+    // as one "check username/token", which is unactionable for the two of them
+    // that aren't the user's fault.
+
+    func testMistypedUsernameIsNamedAsSuchNotAsABadToken() {
+        // GraphQL answers 200 with an errors array — the token is fine.
+        let json = #"""
+        {"data":{"user":null},"errors":[{"type":"NOT_FOUND","path":["user"],
+         "message":"Could not resolve to a User with the login of 'kyre-typo'."}]}
+        """#.data(using: .utf8)!
+
+        XCTAssertThrowsError(try GitHubContributionsService.parse(json)) { error in
+            XCTAssertEqual(error as? GitHubServiceError, .userNotFound)
+        }
+    }
+
+    func testNullUserWithoutAnErrorArrayIsStillAMissingUser() {
+        let json = #"{"data":{"user":null}}"#.data(using: .utf8)!
+        XCTAssertThrowsError(try GitHubContributionsService.parse(json)) { error in
+            XCTAssertEqual(error as? GitHubServiceError, .userNotFound)
+        }
+    }
+
+    func testOtherGraphQLErrorsCarryGitHubsOwnWording() {
+        let json = #"""
+        {"errors":[{"type":"RATE_LIMITED","message":"API rate limit exceeded."}]}
+        """#.data(using: .utf8)!
+
+        XCTAssertThrowsError(try GitHubContributionsService.parse(json)) { error in
+            XCTAssertEqual(error as? GitHubServiceError, .apiError("API rate limit exceeded."))
+        }
+    }
+
+    // MARK: - 403 disambiguation
+    //
+    // GitHub returns 403 both for a revoked token and for either rate limit.
+    // Collapsing them meant a throttled background refresh told the user their
+    // token had died and muted every commit nudge until they "reconnected".
+
+    private func response(status: Int, headers: [String: String]) -> HTTPURLResponse {
+        HTTPURLResponse(
+            url: URL(string: "https://api.github.com/graphql")!,
+            statusCode: status, httpVersion: nil, headerFields: headers
+        )!
+    }
+
+    func testExhaustedPrimaryRateLimitIsNotReadAsADeadToken() {
+        let http = response(status: 403, headers: ["x-ratelimit-remaining": "0"])
+        XCTAssertTrue(GitHubContributionsService.isRateLimited(http))
+    }
+
+    func testSecondaryRateLimitIsNotReadAsADeadToken() {
+        let http = response(status: 403, headers: ["retry-after": "60"])
+        XCTAssertTrue(GitHubContributionsService.isRateLimited(http))
+    }
+
+    func testA403WithBudgetLeftIsStillATokenProblem() {
+        // No throttling signal at all — this is the genuinely revoked case, and
+        // it must keep reaching the user as one.
+        let http = response(status: 403, headers: ["x-ratelimit-remaining": "4998"])
+        XCTAssertFalse(GitHubContributionsService.isRateLimited(http))
+        XCTAssertFalse(GitHubContributionsService.isRateLimited(response(status: 403, headers: [:])))
     }
 
     func testUnknownLevelStringFallsBackToCounts() {

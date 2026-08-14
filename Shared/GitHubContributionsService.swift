@@ -67,13 +67,22 @@ struct ContributionCalendar {
     static var todayString: String { dateFormatter.string(from: Date()) }
 }
 
-enum GitHubServiceError: Error {
+enum GitHubServiceError: Error, Equatable {
     case missingCredentials
     case requestFailed
     /// The token was rejected — expired or revoked. Distinct from a network
     /// blip because it's the one failure the user has to act on, and the one
     /// that must silence commit nudges (data we can't read can't be nagged about).
     case unauthorized
+    /// GitHub is throttling us. Shares the 403 status code with a revoked token,
+    /// but means the opposite thing: wait and it fixes itself. Kept separate so
+    /// a busy hour can't be reported to the user as a dead token.
+    case rateLimited
+    /// The token works; the login doesn't exist. Worth its own case because the
+    /// fix is a typo correction, not a new token.
+    case userNotFound
+    /// GraphQL answered 200 with an `errors` array. Carries GitHub's own wording.
+    case apiError(String)
     case decodingFailed
 }
 
@@ -125,8 +134,15 @@ enum GitHubContributionsService {
         guard let http = response as? HTTPURLResponse else {
             throw GitHubServiceError.requestFailed
         }
-        if http.statusCode == 401 || http.statusCode == 403 {
+        if http.statusCode == 401 {
             throw GitHubServiceError.unauthorized
+        }
+        // 403 is overloaded: GitHub returns it for a revoked token *and* for
+        // both flavours of rate limit. Reading them as the same thing meant a
+        // throttled background refresh told the user their token had died and
+        // silenced every commit nudge until they reconnected a working token.
+        if http.statusCode == 403 || http.statusCode == 429 {
+            throw isRateLimited(http) ? GitHubServiceError.rateLimited : GitHubServiceError.unauthorized
         }
         guard http.statusCode == 200 else {
             throw GitHubServiceError.requestFailed
@@ -165,10 +181,44 @@ enum GitHubContributionsService {
         return rfc.date(from: raw)
     }
 
+    /// Tells a throttled 403 apart from a revoked one. GitHub signals the
+    /// primary limit by zeroing `x-ratelimit-remaining` and the secondary
+    /// (abuse) limit with `retry-after`; a revoked token carries neither.
+    /// Anything ambiguous falls through to "not rate limited", so the only way
+    /// to be told your token is dead is for GitHub to give no throttling signal
+    /// at all.
+    static func isRateLimited(_ http: HTTPURLResponse) -> Bool {
+        if http.value(forHTTPHeaderField: "retry-after") != nil { return true }
+        if let remaining = http.value(forHTTPHeaderField: "x-ratelimit-remaining"),
+           Int(remaining.trimmingCharacters(in: .whitespaces)) == 0 { return true }
+        return false
+    }
+
     /// Split out from the network call so tests can exercise it directly.
     static func parse(_ data: Data) throws -> ContributionCalendar {
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw GitHubServiceError.decodingFailed
+        }
+
+        // GraphQL reports failure with HTTP 200 and an `errors` array, so a
+        // mistyped username used to surface as the same "check username/token"
+        // as a dead network. GitHub already words these well; pass its wording
+        // through rather than inventing a vaguer one.
+        if let errors = json["errors"] as? [[String: Any]], !errors.isEmpty {
+            if errors.contains(where: { ($0["type"] as? String) == "NOT_FOUND" }) {
+                throw GitHubServiceError.userNotFound
+            }
+            throw GitHubServiceError.apiError(
+                (errors.first?["message"] as? String) ?? "GitHub rejected the request."
+            )
+        }
+
+        // A null user with no error array means the same thing as NOT_FOUND.
+        if let dataDict = json["data"] as? [String: Any], dataDict["user"] is NSNull {
+            throw GitHubServiceError.userNotFound
+        }
+
         guard
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
             let dataDict = json["data"] as? [String: Any],
             let user = dataDict["user"] as? [String: Any],
             let collection = user["contributionsCollection"] as? [String: Any],
