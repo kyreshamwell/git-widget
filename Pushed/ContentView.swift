@@ -4,11 +4,12 @@ import WidgetKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @State private var username: String = AppConfig.sharedDefaults.string(forKey: AppConfig.usernameDefaultsKey) ?? ""
-    @State private var token: String = KeychainHelper.read(account: AppConfig.keychainAccount) ?? ""
+    @State private var username: String = ContentView.initialUsername
+    @State private var token: String = ContentView.initialToken
     @State private var snapshot: ContributionSnapshot? = ContributionSnapshot.load()
     @State private var widgetWeeks: Int = AppConfig.widgetWeeks
     @State private var streakIcon: String = AppConfig.streakIcon
+    @State private var customStyle = AppConfig.customStyle
     @State private var status: Status = .idle
     @State private var notifications: NotificationSettings = AppConfig.notificationSettings
     @State private var permissionDenied = false
@@ -23,6 +24,22 @@ struct ContentView: View {
 
     private var isConnected: Bool {
         !username.isEmpty && !token.isEmpty && snapshot != nil
+    }
+
+    private static var initialUsername: String {
+        let stored = AppConfig.sharedDefaults.string(forKey: AppConfig.usernameDefaultsKey) ?? ""
+        #if DEBUG
+        if DemoMode.isRequested && stored.isEmpty { return DemoMode.username }
+        #endif
+        return stored
+    }
+
+    private static var initialToken: String {
+        #if DEBUG
+        // Held in memory only, so demo mode never touches the Keychain.
+        if DemoMode.isRequested { return "demo" }
+        #endif
+        return KeychainHelper.read(account: AppConfig.keychainAccount) ?? ""
     }
 
     var body: some View {
@@ -44,6 +61,8 @@ struct ContentView: View {
                 }
                 .navigationTitle("Pushed")
                 .refreshable { await refresh() }
+                // Picks up edits made in the custom style editor on the way back.
+                .onAppear { customStyle = AppConfig.customStyle }
                 .task { await refreshPermissionState() }
             } else {
                 setupView
@@ -136,8 +155,12 @@ struct ContentView: View {
                     "Long-press anywhere on your home screen",
                     "Tap the + button in the top corner",
                     "Search for this app and pick a size",
+                    "To change its style, long-press the widget and tap Edit Widget",
                     "Done — it refreshes itself every couple of hours, no need to open this app again",
                 ])
+                NavigationLink("See the widget styles") {
+                    WidgetStyleGallery(snapshot: nil)
+                }
             }
 
             if BuildEnvironment.showsDebugTools {
@@ -244,20 +267,43 @@ struct ContentView: View {
                 WidgetCenter.shared.reloadAllTimelines()
             }
 
-            Picker("Streak icon", selection: $streakIcon) {
-                ForEach(AppConfig.streakIconChoices, id: \.self) { choice in
-                    Text(choice == "none" ? "Just the number" : choice).tag(choice)
-                }
+            NavigationLink {
+                StreakIconPicker(icon: streakIconBinding, streak: snapshot?.currentStreak ?? 0)
+            } label: {
+                LabeledContent("Streak icon", value: streakIcon == StreakIcon.none ? "None" : streakIcon)
             }
-            .onChange(of: streakIcon) { _, newValue in
-                AppConfig.sharedDefaults.set(newValue, forKey: AppConfig.streakIconKey)
-                WidgetCenter.shared.reloadAllTimelines()
+
+            NavigationLink {
+                WidgetStyleGallery(snapshot: snapshot, weeks: widgetWeeks, icon: streakIcon)
+            } label: {
+                LabeledContent("Styles", value: "\(WidgetStyle.allCases.count) looks")
+            }
+
+            NavigationLink {
+                CustomStyleEditor(snapshot: snapshot, weeks: widgetWeeks, icon: streakIcon)
+            } label: {
+                LabeledContent("Custom style") {
+                    CustomStyleSwatch(style: customStyle)
+                }
             }
         } header: {
             Text("Widget")
         } footer: {
-            Text("Time range applies to this graph and the home-screen widget. Fewer weeks = bigger squares.")
+            Text("Time range applies to this graph and the home-screen widget. Fewer weeks = bigger squares. To restyle a widget, long-press it on your home screen and tap Edit Widget.")
         }
+    }
+
+    /// Saves as it's set, so the widget picks up each emoji while the picker
+    /// is still open.
+    private var streakIconBinding: Binding<String> {
+        Binding(
+            get: { streakIcon },
+            set: { newValue in
+                streakIcon = newValue
+                AppConfig.streakIcon = newValue
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        )
     }
 
     // MARK: - Notifications
@@ -461,6 +507,9 @@ struct ContentView: View {
     }
 
     private func refresh() async {
+        #if DEBUG
+        if DemoMode.isRequested { return }
+        #endif
         guard !username.isEmpty, !token.isEmpty else { return }
 
         // Reminder times and the streak icon are device preferences and stay
@@ -557,7 +606,7 @@ struct LegendView: View {
             Text("Less").font(.caption2).foregroundStyle(.secondary)
             ForEach(0..<5) { level in
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(ContributionGridView.color(for: level, dark: colorScheme == .dark))
+                    .fill(WidgetStyle.classic.theme(for: colorScheme).color(for: level))
                     .frame(width: 9, height: 9)
             }
             Text("More").font(.caption2).foregroundStyle(.secondary)

@@ -112,6 +112,22 @@ extension ContributionSnapshot {
 
     var currentStreak: Int { currentStreak(asOf: Date()) }
 
+    /// Exactly `count` levels ending today, oldest first. A snapshot fetched on
+    /// an earlier day has no entries for the days since, which count as empty,
+    /// so the last element is always today and never a stale yesterday.
+    func levels(lastDays count: Int, asOf now: Date) -> [Int] {
+        let missing = endDate.flatMap {
+            gregorian.dateComponents(
+                [.day],
+                from: gregorian.startOfDay(for: $0),
+                to: gregorian.startOfDay(for: now)
+            ).day
+        } ?? 0
+        let padded = recentLevels + Array(repeating: 0, count: min(max(missing, 0), count))
+        let tail = padded.suffix(count)
+        return Array(repeating: 0, count: count - tail.count) + tail
+    }
+
     /// Length of the run that just ended, regardless of how long ago it ended.
     /// Powers "your 15-day streak ended" on the first dormant day.
     var streakBeforeBreak: Int { runEndingAtLastContribution }

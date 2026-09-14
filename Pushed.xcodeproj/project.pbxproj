@@ -7,43 +7,68 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0914054F8A073404D03910B3 /* SampleSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C210392403CC7D9EC48129B5 /* SampleSnapshot.swift */; };
 		09722BDE650C810F0E7EB3DB /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */; };
+		0FA5664D00FC951A5D0E6611 /* DemoMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5921B643B6E6718C671B3F23 /* DemoMode.swift */; };
 		10AB792089C6AB4C0F73F2A8 /* BuildEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */; };
 		11529A5CE359406B011535D5 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
 		1795A490CA93D6348166C3F6 /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
+		19F6638014B2B203D3D38EA6 /* StreakWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A892ECF7946F66A9FEC3B089 /* StreakWidgetView.swift */; };
 		1B75521AA8DC66D091A845B2 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
 		1DB35E6904F230C16698752A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */; };
+		1DEB28873E9DEB1B160A5B47 /* CustomWidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01686006985EB29F6E040356 /* CustomWidgetStyle.swift */; };
 		21AB916F836420F91F6D774C /* BuildEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */; };
 		240C40E9A8A110824C24CE2A /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
+		2F507FD0139848E18427C320 /* CustomWidgetStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC5A1FC6ABF2843BC34E681 /* CustomWidgetStyleTests.swift */; };
+		33514D1A993B5E97AB4530DB /* StreakIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */; };
 		35FC7D583B39BE87C4674B91 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */; };
 		3DE3FA8FB458882A96DEE9BE /* NotificationPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */; };
 		43AD45A8A07D25486AF646E0 /* PushedWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4740B4BB165033622DD29B63 /* DemoMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5921B643B6E6718C671B3F23 /* DemoMode.swift */; };
 		4B5919075F71A13AE08240EE /* PushedWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFF3012874A2F6D0A471656 /* PushedWidget.swift */; };
 		53E07968FF007B7208BE40AB /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */; };
+		5606700E3894A58D7ADAC736 /* WidgetStyleGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E56B0C4271B386A35C7E51 /* WidgetStyleGallery.swift */; };
 		5AC69282B81DE682D3DE5EDB /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
 		5B18F3DC34EAC99DF06D4651 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
 		5CAF90078DF278E96B95B166 /* NotificationSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */; };
 		5D790DA6212FF33DFECC991D /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
+		668B50F678F6E6B598D76384 /* SampleSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C210392403CC7D9EC48129B5 /* SampleSnapshot.swift */; };
+		6721AB2CC9045B7D1227D5BC /* WidgetOptionsIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160810259FC8A024A879E04B /* WidgetOptionsIntent.swift */; };
+		6C394A25FE3C5D7965447F31 /* DemoMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5921B643B6E6718C671B3F23 /* DemoMode.swift */; };
 		78C8D99735E2970EB8018E0D /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */; };
 		82A64652E3159D82E7357E26 /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
+		83810D573382F4E263B39438 /* WidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68E8ED2CC67D3077592E375 /* WidgetStyle.swift */; };
 		8521D48C139C9CFAB066C8CE /* GitHubContributionsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */; };
 		8BA850EF7E7F4C31EBDE7761 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F70CE2C5FB12EE2315624FD1 /* PrivacyInfo.xcprivacy */; };
+		8DDC6C5316DEC13038E974B8 /* StreakIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */; };
+		92BD9457EEAC370F979A6367 /* CustomStyleEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF372A4B57A1433612A0A564 /* CustomStyleEditor.swift */; };
 		9602F674A015E2B9A1815050 /* ContributionSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356EF749711302E46F9D9993 /* ContributionSnapshot.swift */; };
 		96B7C88291FE29001EFFFBC9 /* PushedApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */; };
 		97139238B9D1C81F02134616 /* PushedLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */; };
 		99F313A534206D2C61BF24F8 /* BuildEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */; };
 		9CE98599BD88EEAF9A199E47 /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		9DF03C573CACCBC79895542F /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */; };
+		A0245DF802543A5DFFFDF61E /* WidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68E8ED2CC67D3077592E375 /* WidgetStyle.swift */; };
+		A2B2EE6600EA5D4E802C1416 /* WidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68E8ED2CC67D3077592E375 /* WidgetStyle.swift */; };
+		A3BE2AFAB7AD9512E178CD58 /* StreakIconPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5434003CD77A13E1BB2B14D6 /* StreakIconPicker.swift */; };
 		A697F8D1607FBBA24FAA4BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */; };
 		B01C906815B6BC35B95DF389 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494CC5CB24A472B8B7BAF655 /* Provider.swift */; };
+		B845E3C3C68F786DD83B0255 /* CustomWidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01686006985EB29F6E040356 /* CustomWidgetStyle.swift */; };
 		B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		BF53E5D80750D8E1BA4371D1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */; };
+		CBA690CAA5DB254EEF037863 /* StreakWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A892ECF7946F66A9FEC3B089 /* StreakWidgetView.swift */; };
+		CFE6B6CC29B6C174006D8D81 /* CustomWidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01686006985EB29F6E040356 /* CustomWidgetStyle.swift */; };
 		D1ED91D53094EABC48C92FD0 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
+		D2DB709F34BD80A598E39BED /* StreakIconTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5360FCFAA9469CAC0C10F4 /* StreakIconTests.swift */; };
 		D941A6B29C44C6C5BBB2D8BA /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
+		DC5CF1CB026C87F4330FE568 /* StreakWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A892ECF7946F66A9FEC3B089 /* StreakWidgetView.swift */; };
 		E3CA1FD2716AA626E1065F6F /* SelfCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */; };
+		E7736AC7475D6AABEE08C67C /* StreakIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */; };
 		ED2C4761C5DDCF6E65DDD184 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
 		F733D5133C936D68331BCFDD /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
 		F79F449D798D153E08CF1780 /* DebugNotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C90674B989E8A692A52344 /* DebugNotificationsView.swift */; };
+		FCA547C48DCF6AD248BB4835 /* WidgetStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B783BED2905B46D710B79BE /* WidgetStyleTests.swift */; };
+		FCD5912DB5AA2FA67922D6B1 /* SampleSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = C210392403CC7D9EC48129B5 /* SampleSnapshot.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,13 +96,19 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		01686006985EB29F6E040356 /* CustomWidgetStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWidgetStyle.swift; sourceTree = "<group>"; };
 		0A84DCF1096569A79BF32B6F /* Pushed.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pushed.entitlements; sourceTree = "<group>"; };
 		0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		160810259FC8A024A879E04B /* WidgetOptionsIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetOptionsIntent.swift; sourceTree = "<group>"; };
 		32EF47F729BCDAC67059B748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		356EF749711302E46F9D9993 /* ContributionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionSnapshot.swift; sourceTree = "<group>"; };
+		3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakIcon.swift; sourceTree = "<group>"; };
 		458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		494CC5CB24A472B8B7BAF655 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		5434003CD77A13E1BB2B14D6 /* StreakIconPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakIconPicker.swift; sourceTree = "<group>"; };
+		5921B643B6E6718C671B3F23 /* DemoMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoMode.swift; sourceTree = "<group>"; };
 		5DFF3012874A2F6D0A471656 /* PushedWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedWidget.swift; sourceTree = "<group>"; };
+		5EC5A1FC6ABF2843BC34E681 /* CustomWidgetStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWidgetStyleTests.swift; sourceTree = "<group>"; };
 		5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubContributionsService.swift; sourceTree = "<group>"; };
 		621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		65C90674B989E8A692A52344 /* DebugNotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugNotificationsView.swift; sourceTree = "<group>"; };
@@ -86,17 +117,24 @@
 		6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedApp.swift; sourceTree = "<group>"; };
 		768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionGridView.swift; sourceTree = "<group>"; };
 		8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushedLogicTests.swift; sourceTree = "<group>"; };
+		8B783BED2905B46D710B79BE /* WidgetStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStyleTests.swift; sourceTree = "<group>"; };
 		9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfCheck.swift; sourceTree = "<group>"; };
 		A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildEnvironment.swift; sourceTree = "<group>"; };
+		A892ECF7946F66A9FEC3B089 /* StreakWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakWidgetView.swift; sourceTree = "<group>"; };
+		AF5360FCFAA9469CAC0C10F4 /* StreakIconTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakIconTests.swift; sourceTree = "<group>"; };
 		BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSchedulerTests.swift; sourceTree = "<group>"; };
 		BDFB708858C0AE4863B86A02 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		C210392403CC7D9EC48129B5 /* SampleSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleSnapshot.swift; sourceTree = "<group>"; };
 		C4960F548FF0300E98221870 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlannerTests.swift; sourceTree = "<group>"; };
 		D90FB093FB8990E30842ED73 /* Pushed.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Pushed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDAB2D2323DB8F739559D202 /* PushedWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PushedWidget.entitlements; sourceTree = "<group>"; };
+		DF372A4B57A1433612A0A564 /* CustomStyleEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomStyleEditor.swift; sourceTree = "<group>"; };
 		E4F6A2CF2901D65D08CB8DD5 /* PushedWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PushedWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E68E8ED2CC67D3077592E375 /* WidgetStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStyle.swift; sourceTree = "<group>"; };
+		E9E56B0C4271B386A35C7E51 /* WidgetStyleGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStyleGallery.swift; sourceTree = "<group>"; };
 		F70CE2C5FB12EE2315624FD1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -106,12 +144,15 @@
 			children = (
 				458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */,
 				9382AAFB9BD3AAAF8A5EF178 /* ContentView.swift */,
+				DF372A4B57A1433612A0A564 /* CustomStyleEditor.swift */,
 				65C90674B989E8A692A52344 /* DebugNotificationsView.swift */,
 				32EF47F729BCDAC67059B748 /* Info.plist */,
 				621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */,
 				0A84DCF1096569A79BF32B6F /* Pushed.entitlements */,
 				6A3AB5AA92CD217E6F62CF9A /* PushedApp.swift */,
 				9F5A48E57F4CB00C97CA6347 /* SelfCheck.swift */,
+				5434003CD77A13E1BB2B14D6 /* StreakIconPicker.swift */,
+				E9E56B0C4271B386A35C7E51 /* WidgetStyleGallery.swift */,
 			);
 			path = Pushed;
 			sourceTree = "<group>";
@@ -133,10 +174,16 @@
 				A3FEC410101475E260DFA9CD /* BuildEnvironment.swift */,
 				768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */,
 				356EF749711302E46F9D9993 /* ContributionSnapshot.swift */,
+				01686006985EB29F6E040356 /* CustomWidgetStyle.swift */,
+				5921B643B6E6718C671B3F23 /* DemoMode.swift */,
 				5FB8F38428CF4859140DC80E /* GitHubContributionsService.swift */,
 				C73DA520861AF69A7CDE0A22 /* KeychainHelper.swift */,
 				664C4B7FBA91D5C599AF285C /* NotificationPlanner.swift */,
 				0B082ED41F40B9E4249666E6 /* NotificationScheduler.swift */,
+				C210392403CC7D9EC48129B5 /* SampleSnapshot.swift */,
+				3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */,
+				A892ECF7946F66A9FEC3B089 /* StreakWidgetView.swift */,
+				E68E8ED2CC67D3077592E375 /* WidgetStyle.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -155,9 +202,12 @@
 		B4B5CB0CD0F4E33A093ED935 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				5EC5A1FC6ABF2843BC34E681 /* CustomWidgetStyleTests.swift */,
 				D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */,
 				BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */,
 				8497ED0BB23F4F6F4D87C225 /* PushedLogicTests.swift */,
+				AF5360FCFAA9469CAC0C10F4 /* StreakIconTests.swift */,
+				8B783BED2905B46D710B79BE /* WidgetStyleTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -170,6 +220,7 @@
 				494CC5CB24A472B8B7BAF655 /* Provider.swift */,
 				DDAB2D2323DB8F739559D202 /* PushedWidget.entitlements */,
 				5DFF3012874A2F6D0A471656 /* PushedWidget.swift */,
+				160810259FC8A024A879E04B /* WidgetOptionsIntent.swift */,
 			);
 			path = PushedWidget;
 			sourceTree = "<group>";
@@ -305,6 +356,9 @@
 				21AB916F836420F91F6D774C /* BuildEnvironment.swift in Sources */,
 				B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */,
 				5AC69282B81DE682D3DE5EDB /* ContributionSnapshot.swift in Sources */,
+				CFE6B6CC29B6C174006D8D81 /* CustomWidgetStyle.swift in Sources */,
+				2F507FD0139848E18427C320 /* CustomWidgetStyleTests.swift in Sources */,
+				6C394A25FE3C5D7965447F31 /* DemoMode.swift in Sources */,
 				11529A5CE359406B011535D5 /* GitHubContributionsService.swift in Sources */,
 				9DF03C573CACCBC79895542F /* KeychainHelper.swift in Sources */,
 				1795A490CA93D6348166C3F6 /* NotificationPlanner.swift in Sources */,
@@ -312,6 +366,12 @@
 				09722BDE650C810F0E7EB3DB /* NotificationScheduler.swift in Sources */,
 				5CAF90078DF278E96B95B166 /* NotificationSchedulerTests.swift in Sources */,
 				97139238B9D1C81F02134616 /* PushedLogicTests.swift in Sources */,
+				0914054F8A073404D03910B3 /* SampleSnapshot.swift in Sources */,
+				E7736AC7475D6AABEE08C67C /* StreakIcon.swift in Sources */,
+				D2DB709F34BD80A598E39BED /* StreakIconTests.swift in Sources */,
+				DC5CF1CB026C87F4330FE568 /* StreakWidgetView.swift in Sources */,
+				83810D573382F4E263B39438 /* WidgetStyle.swift in Sources */,
+				FCA547C48DCF6AD248BB4835 /* WidgetStyleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,13 +384,22 @@
 				1DB35E6904F230C16698752A /* ContentView.swift in Sources */,
 				D941A6B29C44C6C5BBB2D8BA /* ContributionGridView.swift in Sources */,
 				5B18F3DC34EAC99DF06D4651 /* ContributionSnapshot.swift in Sources */,
+				92BD9457EEAC370F979A6367 /* CustomStyleEditor.swift in Sources */,
+				1DEB28873E9DEB1B160A5B47 /* CustomWidgetStyle.swift in Sources */,
 				F79F449D798D153E08CF1780 /* DebugNotificationsView.swift in Sources */,
+				0FA5664D00FC951A5D0E6611 /* DemoMode.swift in Sources */,
 				82A64652E3159D82E7357E26 /* GitHubContributionsService.swift in Sources */,
 				240C40E9A8A110824C24CE2A /* KeychainHelper.swift in Sources */,
 				78C8D99735E2970EB8018E0D /* NotificationPlanner.swift in Sources */,
 				53E07968FF007B7208BE40AB /* NotificationScheduler.swift in Sources */,
 				96B7C88291FE29001EFFFBC9 /* PushedApp.swift in Sources */,
+				668B50F678F6E6B598D76384 /* SampleSnapshot.swift in Sources */,
 				E3CA1FD2716AA626E1065F6F /* SelfCheck.swift in Sources */,
+				33514D1A993B5E97AB4530DB /* StreakIcon.swift in Sources */,
+				A3BE2AFAB7AD9512E178CD58 /* StreakIconPicker.swift in Sources */,
+				CBA690CAA5DB254EEF037863 /* StreakWidgetView.swift in Sources */,
+				A0245DF802543A5DFFFDF61E /* WidgetStyle.swift in Sources */,
+				5606700E3894A58D7ADAC736 /* WidgetStyleGallery.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,12 +411,19 @@
 				10AB792089C6AB4C0F73F2A8 /* BuildEnvironment.swift in Sources */,
 				9CE98599BD88EEAF9A199E47 /* ContributionGridView.swift in Sources */,
 				9602F674A015E2B9A1815050 /* ContributionSnapshot.swift in Sources */,
+				B845E3C3C68F786DD83B0255 /* CustomWidgetStyle.swift in Sources */,
+				4740B4BB165033622DD29B63 /* DemoMode.swift in Sources */,
 				8521D48C139C9CFAB066C8CE /* GitHubContributionsService.swift in Sources */,
 				1B75521AA8DC66D091A845B2 /* KeychainHelper.swift in Sources */,
 				5D790DA6212FF33DFECC991D /* NotificationPlanner.swift in Sources */,
 				35FC7D583B39BE87C4674B91 /* NotificationScheduler.swift in Sources */,
 				B01C906815B6BC35B95DF389 /* Provider.swift in Sources */,
 				4B5919075F71A13AE08240EE /* PushedWidget.swift in Sources */,
+				FCD5912DB5AA2FA67922D6B1 /* SampleSnapshot.swift in Sources */,
+				8DDC6C5316DEC13038E974B8 /* StreakIcon.swift in Sources */,
+				19F6638014B2B203D3D38EA6 /* StreakWidgetView.swift in Sources */,
+				6721AB2CC9045B7D1227D5BC /* WidgetOptionsIntent.swift in Sources */,
+				A2B2EE6600EA5D4E802C1416 /* WidgetStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
