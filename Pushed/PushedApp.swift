@@ -44,6 +44,7 @@ struct PushedApp: App {
         }
 
         #if DEBUG
+        DemoMode.applyLaunchArguments()
         if SelfCheck.isRequested {
             Task { await SelfCheck.run() }
         }

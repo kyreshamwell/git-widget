@@ -3,80 +3,17 @@ import WidgetKit
 
 struct PushedWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
+    @Environment(\.widgetContentMargins) var margins
     let entry: StreakEntry
 
     var body: some View {
-        if let snapshot = entry.snapshot {
-            switch family {
-            case .systemSmall:
-                smallView(snapshot)
-            default:
-                chartView(snapshot)
-            }
-        } else {
-            Text("Open Pushed and add your GitHub username + token.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-    }
-
-    /// Small: square shape fits fewer columns — cap the user's chosen range at
-    /// 9 weeks, and skip axis labels (no room at this size).
-    private func smallView(_ snapshot: ContributionSnapshot) -> some View {
-        VStack(spacing: 6) {
-            ContributionGridView(levels: snapshot.levels(forWeeks: min(AppConfig.widgetWeeks, 9)))
-            footer(snapshot, compact: true)
-        }
-    }
-
-    /// Medium/large: chart front and center with GitHub-style axis labels,
-    /// range chosen in the app (up to a full year).
-    private func chartView(_ snapshot: ContributionSnapshot) -> some View {
-        VStack(spacing: 6) {
-            ContributionGridView(
-                levels: snapshot.levels(forWeeks: AppConfig.widgetWeeks),
-                endDate: snapshot.endDate,
-                showsLabels: true
-            )
-            footer(snapshot)
-        }
-    }
-
-    /// The small family is ~155pt wide, which can't hold a streak label, a dot
-    /// and "committed today" without truncating the last one. The dot already
-    /// carries that state — green for pushed, orange for not — so at this size
-    /// the words are dropped rather than clipped mid-syllable.
-    private func footer(_ snapshot: ContributionSnapshot, compact: Bool = false) -> some View {
-        let icon = AppConfig.streakIcon
-        let streak = snapshot.currentStreak
-        let label = icon == "none"
-            ? (compact ? "\(streak) day\(streak == 1 ? "" : "s")" : "\(streak)-day streak")
-            : "\(icon) \(streak)"
-
-        return HStack(spacing: 4) {
-            Text(label)
-                .font(.caption.bold())
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-            Spacer(minLength: 4)
-            Circle()
-                .fill(snapshot.committedToday ? Color.green : Color.orange)
-                .frame(width: 7, height: 7)
-            if !compact {
-                Text(snapshot.committedToday ? "committed today" : "not yet today")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-        }
-        // The dot is the only thing carrying "pushed today?" at the small size,
-        // and a colour says nothing to VoiceOver — so the footer states it.
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "\(streak) day\(streak == 1 ? "" : "s") streak. "
-            + (snapshot.committedToday ? "Committed today." : "Not committed yet today.")
+        StreakWidgetView(
+            snapshot: entry.snapshot,
+            family: family,
+            style: entry.style,
+            layout: entry.layout,
+            custom: entry.custom,
+            margins: margins
         )
     }
 }
@@ -85,13 +22,31 @@ struct PushedWidget: Widget {
     let kind = "PushedWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+        AppIntentConfiguration(kind: kind, intent: WidgetOptionsIntent.self, provider: Provider()) { entry in
             PushedWidgetEntryView(entry: entry)
-                .containerBackground(.background, for: .widget)
+                .modifier(StyleContainerBackground(style: entry.style, custom: entry.custom))
         }
         .configurationDisplayName("Contribution Graph")
-        .description("Your GitHub contribution graph and commit streak.")
+        .description("Your GitHub contribution graph and commit streak, in five styles or one you design.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        // StreakWidgetView applies the standard margins itself, trimmed for
+        // the graph layout so the squares can run closer to the edges.
+        .contentMarginsDisabled()
+    }
+}
+
+/// Classic keeps the system's own widget background, which follows light and
+/// dark mode. Every other style paints its own backdrop.
+private struct StyleContainerBackground: ViewModifier {
+    let style: WidgetStyle
+    let custom: CustomWidgetStyle
+
+    func body(content: Content) -> some View {
+        if style == .classic {
+            content.containerBackground(.background, for: .widget)
+        } else {
+            content.containerBackground(for: .widget) { WidgetBackground(style: style, custom: custom) }
+        }
     }
 }
 
@@ -100,4 +55,48 @@ struct PushedWidgetBundle: WidgetBundle {
     var body: some Widget {
         PushedWidget()
     }
+}
+
+// One preview per style, so each look can be tuned in Xcode's canvas without
+// touching the home screen.
+#Preview("Classic", as: .systemMedium) {
+    PushedWidget()
+} timeline: {
+    StreakEntry(date: .now, snapshot: .sample(), style: .classic, layout: .graph)
+    StreakEntry(date: .now, snapshot: .sample(), style: .classic, layout: .streak)
+}
+
+#Preview("Aurora", as: .systemMedium) {
+    PushedWidget()
+} timeline: {
+    StreakEntry(date: .now, snapshot: .sample(), style: .aurora, layout: .graph)
+    StreakEntry(date: .now, snapshot: .sample(), style: .aurora, layout: .streak)
+}
+
+#Preview("Ember", as: .systemMedium) {
+    PushedWidget()
+} timeline: {
+    StreakEntry(date: .now, snapshot: .sample(), style: .ember, layout: .graph)
+    StreakEntry(date: .now, snapshot: .sample(), style: .ember, layout: .streak)
+}
+
+#Preview("Terminal", as: .systemMedium) {
+    PushedWidget()
+} timeline: {
+    StreakEntry(date: .now, snapshot: .sample(), style: .terminal, layout: .graph)
+    StreakEntry(date: .now, snapshot: .sample(), style: .terminal, layout: .streak)
+}
+
+#Preview("Paper", as: .systemMedium) {
+    PushedWidget()
+} timeline: {
+    StreakEntry(date: .now, snapshot: .sample(), style: .paper, layout: .graph)
+    StreakEntry(date: .now, snapshot: .sample(), style: .paper, layout: .streak)
+}
+
+#Preview("Custom", as: .systemMedium) {
+    PushedWidget()
+} timeline: {
+    StreakEntry(date: .now, snapshot: .sample(), style: .custom, layout: .graph, custom: .default)
+    StreakEntry(date: .now, snapshot: .sample(), style: .custom, layout: .streak, custom: .default)
 }

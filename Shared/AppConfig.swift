@@ -13,10 +13,23 @@ enum AppConfig {
     }
 
     static let streakIconKey = "streak-icon"
-    static let streakIconChoices = ["🔥", "⚡", "🌱", "⭐", "none"]
 
+    /// Any single emoji, or `StreakIcon.none` for the bare number.
     static var streakIcon: String {
-        sharedDefaults.string(forKey: streakIconKey) ?? "🔥"
+        get { StreakIcon.sanitized(sharedDefaults.string(forKey: streakIconKey)) }
+        set { sharedDefaults.set(newValue, forKey: streakIconKey) }
+    }
+
+    static let customStyleKey = "custom-widget-style"
+
+    /// The style designed in the app, shared by every widget set to Custom.
+    static var customStyle: CustomWidgetStyle {
+        get {
+            sharedDefaults.data(forKey: customStyleKey)
+                .flatMap { try? JSONDecoder().decode(CustomWidgetStyle.self, from: $0) }
+                ?? .default
+        }
+        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: customStyleKey) }
     }
 
     static var sharedDefaults: UserDefaults {
