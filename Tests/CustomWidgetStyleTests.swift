@@ -85,6 +85,13 @@ final class CustomWidgetStyleTests: XCTestCase {
         XCTAssertTrue(style.squaresStandOut)
     }
 
+    func testEveryStarterLookIsReadable() {
+        for (index, style) in CustomWidgetStyle.starters.enumerated() {
+            XCTAssertTrue(style.squaresStandOut, "starter \(index)")
+        }
+        XCTAssertEqual(Set(CustomWidgetStyle.starters.map(\.squares.red)).count, CustomWidgetStyle.starters.count, "no two alike")
+    }
+
     func testNotYetIsARingSinceTheSquareColorCouldBeAnything() {
         XCTAssertTrue(CustomWidgetStyle.default.theme.ringsPending)
         XCTAssertFalse(WidgetStyle.ember.theme(for: .dark).ringsPending, "built-in styles keep their two colors")

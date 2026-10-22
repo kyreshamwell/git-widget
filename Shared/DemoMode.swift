@@ -8,11 +8,20 @@ import WidgetKit
 ///
 ///     xcrun simctl launch booted com.kyreshamwell.pushed -PushedDemo
 ///
+/// Add `-PushedDemoQuiet 1` to leave today empty (a streak waiting on today),
+/// or `2` to leave yesterday empty as well (a streak that just ended), for
+/// trying rest days and the freeze.
+///
 /// Debug builds only. The fake token lives in memory and never reaches the
 /// Keychain, and the next launch without the flag clears the sample data.
 enum DemoMode {
     static let username = "your-username"
     private static let activeKey = "debug-demo-mode"
+
+    /// Launch arguments given as `-Name value` land in UserDefaults.
+    private static var quietDays: Int {
+        max(UserDefaults.standard.integer(forKey: "PushedDemoQuiet"), 0)
+    }
 
     static var isRequested: Bool {
         ProcessInfo.processInfo.arguments.contains("-PushedDemo")
@@ -29,7 +38,7 @@ enum DemoMode {
         AppConfig.sharedDefaults.set(isRequested, forKey: activeKey)
 
         if isRequested {
-            ContributionSnapshot.sample().save()
+            ContributionSnapshot.sample(quiet: quietDays).save()
         } else if wasActive {
             // Sample data must not outlive the demo and pass for the real thing.
             AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)

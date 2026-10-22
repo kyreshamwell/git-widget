@@ -40,7 +40,8 @@ final class NotificationPlannerTests: XCTestCase {
         now: Date,
         lastActiveDaysAgo: Int,
         streakLength: Int,
-        fetchedAt: Date? = nil
+        fetchedAt: Date? = nil,
+        protection: StreakProtection = .none
     ) -> NotificationContext {
         var settings = NotificationSettings.default
         settings.enabled = true
@@ -51,6 +52,7 @@ final class NotificationPlannerTests: XCTestCase {
                 streakLength: streakLength,
                 fetchedAt: fetchedAt
             ),
+            protection: protection,
             settings: settings,
             now: now
         )
@@ -420,5 +422,152 @@ final class NotificationPlannerTests: XCTestCase {
         ctx.settings.enabled = false
         ctx.tokenExpiry = at("2026-08-16", 9)
         XCTAssertTrue(NotificationPlanner.plan(ctx).isEmpty)
+    }
+
+    // MARK: - Rest days and the freeze
+    //
+    // Oct 2026: the 11th and 18th are Sundays, the 17th a Saturday.
+
+    /// Saturday and Sunday off, in force long before any date used here.
+    private var weekendsOff: StreakProtection {
+        StreakProtection(schedules: [.init(from: "2026-01-01", weekdays: [1, 7])])
+    }
+
+    /// A snapshot ending on `now`. `pattern` is one character per day, oldest
+    /// first: "#" pushed, "." empty.
+    private func context(now: Date, pattern: String, protection: StreakProtection) -> NotificationContext {
+        var settings = NotificationSettings.default
+        settings.enabled = true
+        let levels = pattern.filter { $0 != " " }.map { $0 == "#" ? 2 : 0 }
+        return NotificationContext(
+            snapshot: ContributionSnapshot(
+                totalContributions: levels.reduce(0, +),
+                recentLevels: levels,
+                lastDate: formatter.string(from: now),
+                fetchedAt: now
+            ),
+            protection: protection,
+            settings: settings,
+            now: now
+        )
+    }
+
+    func testARestDayWithNothingPushedStaysSilent() {
+        // Saturday morning, last push on Friday.
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-17", 9), lastActiveDaysAgo: 1, streakLength: 5, protection: weekendsOff)
+        )
+        XCTAssertTrue(plan.isEmpty, "nothing is owed on a rest day")
+    }
+
+    func testAStreakCarriedOverTheWeekendIsAtRiskAgainOnMonday() {
+        // Last push on Friday the 16th, read on Monday the 19th.
+        let now = at("2026-10-19", 9)
+        let rested = NotificationPlanner.plan(
+            context(now: now, lastActiveDaysAgo: 3, streakLength: 5, protection: weekendsOff)
+        )
+        XCTAssertEqual(find(rested, slot: "midday")?.title, "5-day streak", "the weekend didn't add to it or end it")
+        XCTAssertEqual(find(rested, slot: "evening")?.title, "Your 5-day streak ends at midnight")
+
+        // The same three days with no rest days is a streak long gone.
+        let unrested = NotificationPlanner.plan(context(now: now, lastActiveDaysAgo: 3, streakLength: 5))
+        XCTAssertEqual(find(unrested, slot: "evening")?.title, "Not coding today?")
+    }
+
+    func testTheEveningWarningMentionsARestDayStillInHand() {
+        // A Wednesday. Sunday was pushed, so both of the week's rest days are unspent.
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-14", 9), lastActiveDaysAgo: 1, streakLength: 10, protection: weekendsOff)
+        )
+        XCTAssertEqual(find(plan, slot: "evening")?.body, "About 4 hours left. You still have a rest day this week.")
+        XCTAssertEqual(find(plan, slot: "midday")?.body, "Nothing pushed yet today.", "midday stays a plain heads-up")
+    }
+
+    func testTheEveningWarningFallsBackToTheFreeze() {
+        // No rest days chosen, freeze untouched.
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-14", 9), lastActiveDaysAgo: 1, streakLength: 10, protection: .initial)
+        )
+        XCTAssertEqual(find(plan, slot: "evening")?.body, "About 4 hours left. Your freeze is still unused.")
+
+        let long = NotificationPlanner.plan(
+            context(now: at("2026-10-14", 9), lastActiveDaysAgo: 1, streakLength: 40, protection: .initial)
+        )
+        XCTAssertEqual(find(long, slot: "evening")?.body, "About 4 hours left. Your freeze is still unused.")
+    }
+
+    func testTheEveningWarningOffersNothingOnceItIsAllSpent() {
+        // October's freeze went on the 8th, and no rest days are chosen.
+        var protection = StreakProtection.initial
+        protection.claims = ["2026-10-08": .freeze]
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-14", 9), pattern: "####.#####.", protection: protection)
+        )
+        XCTAssertEqual(find(plan, slot: "evening")?.title, "Your 9-day streak ends at midnight")
+        XCTAssertEqual(find(plan, slot: "evening")?.body, "About 4 hours left.")
+    }
+
+    func testTheDayAfterAMissOffersToSaveTheStreak() {
+        // Thursday the 15th. Wednesday was missed after fifteen days.
+        let now = at("2026-10-15", 9)
+
+        let frozen = NotificationPlanner.plan(
+            context(now: now, lastActiveDaysAgo: 2, streakLength: 15, protection: .initial)
+        )
+        XCTAssertEqual(frozen.count, 1)
+        XCTAssertTrue(frozen[0].id.hasPrefix("daily-midday"))
+        XCTAssertEqual(frozen[0].title, "Your 15-day streak can still be saved")
+        XCTAssertEqual(frozen[0].body, "Yesterday's square is empty. Use your freeze in Pushed today to keep it.")
+
+        let rested = NotificationPlanner.plan(
+            context(now: now, lastActiveDaysAgo: 2, streakLength: 15, protection: weekendsOff)
+        )
+        XCTAssertEqual(rested[0].body, "Yesterday's square is empty. Use a rest day in Pushed today to keep it.")
+    }
+
+    func testTheRescueMovesToTheEveningOnceMiddayHasPassed() {
+        // It expires at midnight, so a late refresh shouldn't swallow it.
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-15", 15), lastActiveDaysAgo: 2, streakLength: 15, protection: .initial)
+        )
+        XCTAssertEqual(plan.count, 1)
+        XCTAssertTrue(plan[0].id.hasPrefix("daily-evening"))
+        XCTAssertEqual(plan[0].title, "Your 15-day streak can still be saved")
+    }
+
+    func testTheRescueSpeaksUpEvenOnARestDay() {
+        // Saturday the 17th is a rest day, but Friday's miss can only be covered today.
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-17", 9), lastActiveDaysAgo: 2, streakLength: 15, protection: weekendsOff)
+        )
+        XCTAssertEqual(plan.first?.title, "Your 15-day streak can still be saved")
+    }
+
+    func testNoRescueOnceTwoDaysHaveGone() {
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-16", 9), lastActiveDaysAgo: 3, streakLength: 15, protection: .initial)
+        )
+        XCTAssertEqual(plan.first?.title, "Not coding today?")
+    }
+
+    func testNoRescueWithNothingLeftToUse() {
+        // Freeze gone on the 8th, no rest days: the old wording stands.
+        var protection = StreakProtection.initial
+        protection.claims = ["2026-10-08": .freeze]
+        let plan = NotificationPlanner.plan(
+            context(now: at("2026-10-15", 9), pattern: "####.#####..", protection: protection)
+        )
+        XCTAssertEqual(plan.first?.title, "Your 9-day streak ended")
+    }
+
+    func testMilestonesCountPushedDaysNotDaysOff() {
+        // Five weekdays, a weekend off, then Monday: six pushed over eight days.
+        var six = context(now: at("2026-10-19", 12), pattern: ".#####. .#", protection: weekendsOff)
+        six.lastCelebratedStreak = 3
+        XCTAssertTrue(NotificationPlanner.plan(six).isEmpty, "six days is no milestone, whatever the calendar says")
+
+        var seven = context(now: at("2026-10-20", 12), pattern: ".#####. .##", protection: weekendsOff)
+        seven.lastCelebratedStreak = 3
+        XCTAssertEqual(NotificationPlanner.plan(seven).map(\.id), ["milestone-7"])
     }
 }

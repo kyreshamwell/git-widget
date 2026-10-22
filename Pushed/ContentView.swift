@@ -9,7 +9,9 @@ struct ContentView: View {
     @State private var snapshot: ContributionSnapshot? = ContributionSnapshot.load()
     @State private var widgetWeeks: Int = AppConfig.widgetWeeks
     @State private var streakIcon: String = AppConfig.streakIcon
-    @State private var customStyle = AppConfig.customStyle
+    @State private var library = AppConfig.styleLibrary
+    @State private var protection = AppConfig.streakProtection
+    @State private var testScenario = TestScenario.current
     @State private var status: Status = .idle
     @State private var notifications: NotificationSettings = AppConfig.notificationSettings
     @State private var permissionDenied = false
@@ -46,14 +48,23 @@ struct ContentView: View {
         NavigationStack {
             if isConnected {
                 Form {
-                    if let snapshot {
-                        graphSection(snapshot)
-                        statsSection(snapshot)
-                        widgetSection
+                    if testScenario != .off {
+                        Label("Showing test data: \(testScenario.name)", systemImage: "testtube.2")
+                            .foregroundStyle(.orange)
+                    }
+                    if let snapshot = shownSnapshot {
+                        // One reading for the whole screen, the same one the
+                        // widget and the reminders work from.
+                        let history = snapshot.history(protection: protection)
+                        graphSection(history)
+                        statsSection(history, snapshot: snapshot)
+                        DaysOffSection(history: history, protection: protection, apply: apply)
+                        widgetSection(streak: history.streak)
                     }
                     notificationSection
                     accountSection
                     if BuildEnvironment.showsDebugTools {
+                        testingSection
                         Section {
                             NavigationLink("Notification debug") { DebugNotificationsView() }
                         }
@@ -61,8 +72,8 @@ struct ContentView: View {
                 }
                 .navigationTitle("Pushed")
                 .refreshable { await refresh() }
-                // Picks up edits made in the custom style editor on the way back.
-                .onAppear { customStyle = AppConfig.customStyle }
+                // Picks up styles saved or changed on the way back.
+                .onAppear { library = AppConfig.styleLibrary }
                 .task { await refreshPermissionState() }
             } else {
                 setupView
@@ -188,12 +199,12 @@ struct ContentView: View {
 
     // MARK: - Graph
 
-    private func graphSection(_ snapshot: ContributionSnapshot) -> some View {
+    private func graphSection(_ history: StreakHistory) -> some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
                 ContributionGridView(
-                    levels: snapshot.levels(forWeeks: widgetWeeks),
-                    endDate: snapshot.endDate,
+                    days: history.days(forWeeks: widgetWeeks),
+                    endDate: history.endDate,
                     showsLabels: true
                 )
                 .frame(height: 104)
@@ -213,6 +224,8 @@ struct ContentView: View {
                 Each square is one day. Columns are weeks (oldest on the left), rows run Sunday to Saturday top to bottom — the same layout as your github.com profile.
 
                 Color shows how active that day was relative to your own history: grey means no contributions, and the four greens are GitHub's intensity buckets (more contributions = darker). A "contribution" is a commit pushed to a default branch, an opened PR or issue, or a code review.
+
+                An outlined square with a dot is a day off: a rest day or a freeze. The streak steps over it without counting it.
                 """)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -223,23 +236,82 @@ struct ContentView: View {
         }
     }
 
-    private func statsSection(_ snapshot: ContributionSnapshot) -> some View {
+    private func statsSection(_ history: StreakHistory, snapshot: ContributionSnapshot) -> some View {
         Section("Stats") {
-            LabeledContent("Current streak", value: "\(snapshot.currentStreak) day\(snapshot.currentStreak == 1 ? "" : "s")")
-            LabeledContent("Committed today", value: snapshot.committedToday ? "Yes ✓" : "Not yet")
+            LabeledContent("Current streak", value: "\(history.streak) day\(history.streak == 1 ? "" : "s")")
+            LabeledContent("Today", value: todayText(history.today))
             LabeledContent("Contributions this year", value: "\(snapshot.totalContributions)")
 
             // Follows the time-range picker, so this always describes the exact
             // squares drawn above it. The old version hardcoded "26 wks" while
             // counting the full retained year, and ignored the picker entirely.
-            let window = snapshot.levels(forWeeks: widgetWeeks)
+            let window = history.days(forWeeks: widgetWeeks)
             LabeledContent(
                 "Green squares",
-                value: "\(window.filter { $0 > 0 }.count) of \(window.count) days"
+                value: "\(window.filter(\.isActive).count) of \(window.count) days"
             )
             Text("Last synced \(snapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened)). Pull down to refresh.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private func todayText(_ today: StreakHistory.Today) -> String {
+        switch today {
+        case .pushed: "Committed ✓"
+        case .off(.rest): "Rest day"
+        case .off(.freeze): "Streak frozen"
+        case .pending: "Not committed yet"
+        }
+    }
+
+    /// Single write path for rest days and freezes. A claim changes what
+    /// today's reminders should say under identifiers that are already
+    /// queued, so the day slots are dropped and planned again.
+    private func apply(_ updated: StreakProtection) {
+        protection = updated
+        AppConfig.streakProtection = updated
+        WidgetCenter.shared.reloadAllTimelines()
+        Task {
+            await NotificationScheduler(center: SystemNotificationCenter()).resetDaySlots()
+            await NotificationCoordinator.reconcile()
+        }
+    }
+
+    // MARK: - Testing
+
+    /// The real snapshot, or the pretend one while a test is running.
+    private var shownSnapshot: ContributionSnapshot? {
+        testScenario.snapshot(replacing: snapshot)
+    }
+
+    /// TestFlight and Xcode builds only. Swaps in a sample streak everywhere
+    /// at once, so rest days, freezes and the reminders can be tried for real.
+    private var testingSection: some View {
+        Section {
+            Picker("Pretend", selection: Binding(
+                get: { testScenario },
+                set: { setTestScenario($0) }
+            )) {
+                ForEach(TestScenario.allCases) { scenario in
+                    Text(scenario.name).tag(scenario)
+                }
+            }
+        } header: {
+            Text("Testing")
+        } footer: {
+            Text("Shows a sample 12-day streak in the app, the widgets and the reminders. \"Waiting on today\" lets you take today off. \"Missed yesterday\" lets you save the streak. Rest days, freezes and milestones you use while testing are put back when you switch this off. Only in TestFlight and Xcode builds.")
+        }
+    }
+
+    private func setTestScenario(_ scenario: TestScenario) {
+        TestScenario.switchTo(scenario)
+        testScenario = scenario
+        protection = AppConfig.streakProtection
+        WidgetCenter.shared.reloadAllTimelines()
+        Task {
+            await NotificationScheduler(center: SystemNotificationCenter()).resetDaySlots()
+            await NotificationCoordinator.reconcile()
         }
     }
 
@@ -254,7 +326,7 @@ struct ContentView: View {
         }
     }
 
-    private var widgetSection: some View {
+    private func widgetSection(streak: Int) -> some View {
         Section {
             Picker("Time range", selection: $widgetWeeks) {
                 Text("1 month").tag(4)
@@ -268,7 +340,7 @@ struct ContentView: View {
             }
 
             NavigationLink {
-                StreakIconPicker(icon: streakIconBinding, streak: snapshot?.currentStreak ?? 0)
+                StreakIconPicker(icon: streakIconBinding, streak: streak)
             } label: {
                 LabeledContent("Streak icon", value: streakIcon == StreakIcon.none ? "None" : streakIcon)
             }
@@ -276,15 +348,20 @@ struct ContentView: View {
             NavigationLink {
                 WidgetStyleGallery(snapshot: snapshot, weeks: widgetWeeks, icon: streakIcon)
             } label: {
-                LabeledContent("Styles", value: "\(WidgetStyle.allCases.count) looks")
+                LabeledContent("Styles") {
+                    HStack(spacing: 8) {
+                        Text("\(WidgetStyle.builtIn.count) built in, \(library.styles.count) of yours")
+                        if let first = library.styles.first {
+                            CustomStyleSwatch(style: first.style)
+                        }
+                    }
+                }
             }
 
             NavigationLink {
-                CustomStyleEditor(snapshot: snapshot, weeks: widgetWeeks, icon: streakIcon)
+                RotationView(snapshot: snapshot, weeks: widgetWeeks, icon: streakIcon)
             } label: {
-                LabeledContent("Custom style") {
-                    CustomStyleSwatch(style: customStyle)
-                }
+                LabeledContent("Daily rotation", value: "Today: \(library.rotationPick(on: Date()).name)")
             }
         } header: {
             Text("Widget")
@@ -404,7 +481,8 @@ struct ContentView: View {
     private var nextReminderDescription: String {
         let plan = NotificationPlanner.plan(
             NotificationContext(
-                snapshot: snapshot,
+                snapshot: shownSnapshot,
+                protection: protection,
                 settings: notifications,
                 tokenExpiry: AppConfig.tokenExpiry,
                 lastCelebratedStreak: AppConfig.lastCelebratedStreak,
@@ -415,15 +493,20 @@ struct ContentView: View {
         ).filter { $0.id.hasPrefix("daily-") }
 
         guard let next = plan.min(by: { $0.fireDate < $1.fireDate }) else {
-            if snapshot?.committedToday == true {
-                return "Nothing today — you've already pushed. Reminders resume tomorrow."
+            switch shownSnapshot?.history(protection: protection).today {
+            case .pushed:
+                return "You've already pushed today, so nothing is scheduled. Reminders resume tomorrow."
+            case .off:
+                return "Today is a day off, so nothing is scheduled. Reminders resume tomorrow."
+            default:
+                break
             }
             if AppConfig.authFailed {
-                return "Paused — reconnect your GitHub token first."
+                return "Paused until you reconnect your GitHub token."
             }
             return "Nothing left today. Both times have already passed."
         }
-        return "Next: \(next.fireDate.formatted(date: .omitted, time: .shortened)) — “\(next.title)”"
+        return "Next at \(next.fireDate.formatted(date: .omitted, time: .shortened)): “\(next.title)”"
     }
 
     private func enableNotifications() async {
@@ -497,6 +580,8 @@ struct ContentView: View {
         AppConfig.sharedDefaults.removeObject(forKey: AppConfig.usernameDefaultsKey)
         AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)
         AppConfig.resetNotificationState()
+        AppConfig.forgetClaimedDays()
+        protection = AppConfig.streakProtection
         username = ""
         token = ""
         snapshot = nil
@@ -520,6 +605,8 @@ struct ContentView: View {
         let switchedAccount = previous.map { $0.lowercased() != username.lowercased() } ?? false
         if switchedAccount {
             AppConfig.resetNotificationState()
+            AppConfig.forgetClaimedDays()
+            await MainActor.run { protection = AppConfig.streakProtection }
             AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)
             await NotificationScheduler(center: SystemNotificationCenter()).removeAllManaged()
         }
@@ -557,7 +644,7 @@ struct ContentView: View {
             // milestone they passed before installing the app.
             if isFirstConnect {
                 AppConfig.lastCelebratedStreak = NotificationPlanner.milestoneBaseline(
-                    for: newSnapshot, asOf: Date()
+                    for: newSnapshot, protection: AppConfig.streakProtection, asOf: Date()
                 )
             }
 

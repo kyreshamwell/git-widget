@@ -20,16 +20,46 @@ enum AppConfig {
         set { sharedDefaults.set(newValue, forKey: streakIconKey) }
     }
 
+    /// Where the one custom style lived before there was a library. Only
+    /// read now, to carry that design over.
     static let customStyleKey = "custom-widget-style"
+    static let styleLibraryKey = "widget-style-library"
 
-    /// The style designed in the app, shared by every widget set to Custom.
-    static var customStyle: CustomWidgetStyle {
+    /// The saved custom styles, shared with the widget.
+    static var styleLibrary: StyleLibrary {
         get {
-            sharedDefaults.data(forKey: customStyleKey)
+            if let data = sharedDefaults.data(forKey: styleLibraryKey),
+               let library = try? JSONDecoder().decode(StyleLibrary.self, from: data),
+               !library.styles.isEmpty {
+                return library
+            }
+            let earlier = sharedDefaults.data(forKey: customStyleKey)
                 .flatMap { try? JSONDecoder().decode(CustomWidgetStyle.self, from: $0) }
-                ?? .default
+            return .starting(with: earlier ?? .default)
         }
-        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: customStyleKey) }
+        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: styleLibraryKey) }
+    }
+
+    static let streakProtectionKey = "streak-protection"
+
+    /// Rest days and freezes. Shared, because the widget and the reminders
+    /// work the streak out from it as well.
+    static var streakProtection: StreakProtection {
+        get {
+            sharedDefaults.data(forKey: streakProtectionKey)
+                .flatMap { try? JSONDecoder().decode(StreakProtection.self, from: $0) }
+                ?? .initial
+        }
+        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: streakProtectionKey) }
+    }
+
+    /// Claimed days belong to one account's history. The chosen weekdays are
+    /// a habit of the person holding the phone, so those stay.
+    static func forgetClaimedDays() {
+        var protection = streakProtection
+        guard !protection.claims.isEmpty else { return }
+        protection.claims = [:]
+        streakProtection = protection
     }
 
     static var sharedDefaults: UserDefaults {

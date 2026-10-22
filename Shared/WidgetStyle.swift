@@ -7,10 +7,19 @@ import WidgetKit
 /// styles side by side.
 enum WidgetStyle: String, CaseIterable, Identifiable, Sendable {
     case classic, aurora, ember, terminal, paper
-    /// Designed in the app. See `CustomWidgetStyle`.
+    /// Designed in the app. See `CustomWidgetStyle` and `StyleLibrary`.
     case custom
+    /// Not a look of its own: a different saved style each day. It's only
+    /// ever a choice in Edit Widget, and `StyleLibrary.look` turns it into
+    /// that day's real style before anything is drawn.
+    case rotation
 
     var id: String { rawValue }
+
+    /// The styles that ship with the app.
+    static let builtIn: [WidgetStyle] = [.classic, .aurora, .ember, .terminal, .paper]
+    /// Every style that can actually be drawn.
+    static let designs: [WidgetStyle] = builtIn + [.custom]
 
     var name: String {
         switch self {
@@ -20,6 +29,7 @@ enum WidgetStyle: String, CaseIterable, Identifiable, Sendable {
         case .terminal: "Terminal"
         case .paper: "Paper"
         case .custom: "Custom"
+        case .rotation: "Daily Rotation"
         }
     }
 
@@ -31,6 +41,7 @@ enum WidgetStyle: String, CaseIterable, Identifiable, Sendable {
         case .terminal: "Phosphor green on black, set in monospace."
         case .paper: "Ink dots on warm paper. Calm and bright."
         case .custom: "Your colors, shape and type."
+        case .rotation: "One of your styles, a different one each day."
         }
     }
 
@@ -39,7 +50,7 @@ enum WidgetStyle: String, CaseIterable, Identifiable, Sendable {
     /// the phone's light or dark setting.
     func pinnedColorScheme(custom: CustomWidgetStyle = .default) -> ColorScheme? {
         switch self {
-        case .classic: nil
+        case .classic, .rotation: nil
         case .paper: .light
         case .aurora, .ember, .terminal: .dark
         case .custom: custom.colorScheme
@@ -83,10 +94,18 @@ struct WidgetTheme {
     /// Draw "not pushed yet" as a hollow ring rather than a second color, for
     /// themes where no second color is guaranteed to stand apart.
     var ringsPending = false
+    /// Draw empty days as a hollow outline instead of a filled square, for
+    /// themes where a filled one would pass for a faint active day.
+    var outlinesEmpty = false
 
     func color(for level: Int) -> Color {
         levels[min(max(level, 0), levels.count - 1)]
     }
+
+    /// The outline and dot of a rest day or a freeze. It borrows a mid level,
+    /// so a day off sits in the same family as the days around it without
+    /// being as loud as a day that was pushed.
+    var dayOff: Color { color(for: 2) }
 
     /// Tinted and clear home screens drop the backdrop and repaint every pixel
     /// in a single tint, keeping only its alpha, so hue can't tell the levels
@@ -120,7 +139,9 @@ extension WidgetStyle {
 
     private func fullColorTheme(for colorScheme: ColorScheme, custom: CustomWidgetStyle) -> WidgetTheme {
         switch self {
-        case .classic:
+        // Rotation is resolved to a real style long before this. Should it
+        // ever arrive here it draws as Classic, not as a blank widget.
+        case .classic, .rotation:
             WidgetTheme(
                 levels: colorScheme == .dark ? Self.classicDark : Self.classicLight,
                 primaryText: .primary,
@@ -162,7 +183,10 @@ extension WidgetStyle {
             )
         case .terminal:
             WidgetTheme(
-                levels: [0x14261A, 0x0F5C2A, 0x1A9A45, 0x39D765, 0x9CFFB0].map { Color(hex: $0) },
+                // The greens climb in even steps from a first level that's
+                // plainly lit. Empty days are drawn hollow (see below), so
+                // level 0 here is the color of that outline.
+                levels: [0x334937, 0x0E8C41, 0x1CB657, 0x3CE074, 0x9CFFB0].map { Color(hex: $0) },
                 primaryText: Color(hex: 0x8CFCA6),
                 secondaryText: Color(hex: 0x4FA968),
                 numberFill: AnyShapeStyle(Color(hex: 0x8CFCA6)),
@@ -170,7 +194,12 @@ extension WidgetStyle {
                 pending: Color(hex: 0xF5C542),
                 cornerFraction: 0,
                 glows: true,
-                fontDesign: .monospaced
+                fontDesign: .monospaced,
+                // On a black screen a filled dark green square and a dim
+                // green one are hard to tell apart, which left it unclear
+                // whether a day had anything on it. Hollow against filled is
+                // a difference in shape, not in shade.
+                outlinesEmpty: true
             )
         case .paper:
             WidgetTheme(
@@ -208,6 +237,23 @@ extension WidgetStyle {
     ]
 }
 
+extension WidgetStyle {
+    /// The two colors a painted backdrop runs between. Classic sits on the
+    /// system's widget background and Custom on whatever was picked, so
+    /// neither has any of its own.
+    var backdrop: [UInt32] {
+        switch self {
+        case .classic, .custom, .rotation: []
+        case .aurora: [0x1E1B4B, 0x4C1D95]
+        case .ember: [0x1A0F0B, 0x2B120A]
+        case .terminal: [0x0C1A10, 0x030604]
+        case .paper: [0xF8F4EC, 0xEEE6D6]
+        }
+    }
+
+    fileprivate var backdropColors: [Color] { backdrop.map { Color(hex: $0) } }
+}
+
 /// A style's backdrop. In the widget itself Classic is left to the system's
 /// own background; this view stands in for it inside the app.
 struct WidgetBackground: View {
@@ -216,12 +262,12 @@ struct WidgetBackground: View {
 
     var body: some View {
         switch style {
-        case .classic:
+        case .classic, .rotation:
             Color(uiColor: .secondarySystemGroupedBackground)
         case .aurora:
             ZStack {
                 LinearGradient(
-                    colors: [Color(hex: 0x1E1B4B), Color(hex: 0x4C1D95)],
+                    colors: style.backdropColors,
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 )
                 EllipticalGradient(
@@ -236,7 +282,7 @@ struct WidgetBackground: View {
         case .ember:
             ZStack {
                 LinearGradient(
-                    colors: [Color(hex: 0x1A0F0B), Color(hex: 0x2B120A)],
+                    colors: style.backdropColors,
                     startPoint: .top, endPoint: .bottom
                 )
                 EllipticalGradient(
@@ -247,14 +293,14 @@ struct WidgetBackground: View {
         case .terminal:
             ZStack {
                 EllipticalGradient(
-                    colors: [Color(hex: 0x0C1A10), Color(hex: 0x030604)],
+                    colors: style.backdropColors,
                     center: .center, endRadiusFraction: 0.75
                 )
                 Scanlines()
             }
         case .paper:
             LinearGradient(
-                colors: [Color(hex: 0xF8F4EC), Color(hex: 0xEEE6D6)],
+                colors: style.backdropColors,
                 startPoint: .top, endPoint: .bottom
             )
         case .custom:

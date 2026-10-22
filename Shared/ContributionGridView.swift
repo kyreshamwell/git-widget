@@ -10,9 +10,9 @@ struct ContributionGridView: View {
     @Environment(\.widgetRenderingMode) private var renderingMode
     @Environment(\.customWidgetStyle) private var custom
 
-    /// Intensity levels 0-4, oldest first, aligned so index 0 is a Sunday.
-    let levels: [Int]
-    /// Date of the final entry in `levels`; required for axis labels.
+    /// One per day, oldest first, aligned so index 0 is a Sunday.
+    let days: [StreakDay]
+    /// Date of the final entry in `days`; required for axis labels.
     var endDate: Date? = nil
     var showsLabels: Bool = false
     var style: WidgetStyle = .classic
@@ -21,9 +21,9 @@ struct ContributionGridView: View {
         style.theme(for: colorScheme, renderingMode: renderingMode, custom: custom)
     }
 
-    private var weeks: [[Int]] {
-        stride(from: 0, to: levels.count, by: 7).map { start in
-            Array(levels[start..<min(start + 7, levels.count)])
+    private var weeks: [[StreakDay]] {
+        stride(from: 0, to: days.count, by: 7).map { start in
+            Array(days[start..<min(start + 7, days.count)])
         }
     }
 
@@ -31,14 +31,14 @@ struct ContributionGridView: View {
     private var monthLabels: [(col: Int, text: String)] {
         guard showsLabels, let endDate else { return [] }
         let cal = Calendar(identifier: .gregorian)
-        guard let startDate = cal.date(byAdding: .day, value: -(levels.count - 1), to: endDate) else { return [] }
+        guard let startDate = cal.date(byAdding: .day, value: -(days.count - 1), to: endDate) else { return [] }
 
         let monthFormatter = DateFormatter()
         monthFormatter.dateFormat = "MMM"
 
         var labels: [(Int, String)] = []
         var previousMonth = cal.component(.month, from: startDate)
-        let columns = (levels.count + 6) / 7
+        let columns = (days.count + 6) / 7
         for col in 1..<columns {
             guard let colDate = cal.date(byAdding: .day, value: col * 7, to: startDate) else { continue }
             let month = cal.component(.month, from: colDate)
@@ -74,8 +74,12 @@ struct ContributionGridView: View {
     /// unnavigable, so the grid is collapsed into one element that states what
     /// a sighted reader takes from the shape of it.
     private var accessibilityDescription: String {
-        let active = levels.filter { $0 > 0 }.count
-        var text = "Contribution graph. \(active) of \(levels.count) days with contributions"
+        let active = days.filter(\.isActive).count
+        let off = days.filter { $0.off != nil }.count
+        var text = "Contribution graph. \(active) of \(days.count) days with contributions"
+        if off > 0 {
+            text += ", \(off) day\(off == 1 ? "" : "s") off"
+        }
         if let endDate {
             text += ", through \(endDate.formatted(date: .abbreviated, time: .omitted))"
         }
@@ -138,15 +142,13 @@ struct ContributionGridView: View {
                         ForEach(0..<columns, id: \.self) { col in
                             VStack(spacing: spacing) {
                                 ForEach(0..<weeks[col].count, id: \.self) { row in
-                                    let level = weeks[col][row]
-                                    CellShape(cornerFraction: theme.cornerFraction)
-                                        .fill(theme.color(for: level))
+                                    let day = weeks[col][row]
+                                    DayCell(day: day, theme: theme, glowRadius: cellW * 0.5)
                                         .frame(width: cellW, height: cellH)
-                                        .glow(theme.glows && level >= 3 ? theme.color(for: level) : nil, radius: cellW * 0.5)
                                         // On a tinted home screen the active days
                                         // take the accent tint and empty ones stay
                                         // neutral, so the graph still reads.
-                                        .widgetAccentable(level > 0)
+                                        .widgetAccentable(day.isActive)
                                 }
                             }
                         }
@@ -157,6 +159,59 @@ struct ContributionGridView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityDescription)
+    }
+}
+
+/// One day's square, drawn the way its theme draws that kind of day: filled
+/// by how busy it was, hollow where the theme outlines empty days, and hollow
+/// with a dot for a rest day or a freeze.
+struct DayCell: View {
+    let day: StreakDay
+    let theme: WidgetTheme
+    /// Halo size for the busiest days, in themes that glow. Zero for none.
+    var glowRadius: CGFloat = 0
+
+    var body: some View {
+        if day.off != nil {
+            CellOutline(cornerFraction: theme.cornerFraction, dotted: true)
+                .fill(theme.dayOff, style: FillStyle(eoFill: true))
+        } else if day.level == 0 && theme.outlinesEmpty {
+            CellOutline(cornerFraction: theme.cornerFraction)
+                .fill(theme.color(for: 0), style: FillStyle(eoFill: true))
+        } else {
+            CellShape(cornerFraction: theme.cornerFraction)
+                .fill(theme.color(for: day.level))
+                .glow(
+                    theme.glows && day.level >= 3 && glowRadius > 0 ? theme.color(for: day.level) : nil,
+                    radius: glowRadius
+                )
+        }
+    }
+}
+
+/// A cell's outline, optionally with a dot in the middle. Everything is sized
+/// from the cell itself, so the mark holds its proportions from a year of
+/// tiny squares to a week of big ones. Fill it with the even-odd rule: the
+/// inner edge cuts the hole, and the dot fills back in.
+struct CellOutline: Shape {
+    var cornerFraction: CGFloat
+    var dotted = false
+
+    func path(in rect: CGRect) -> Path {
+        let side = min(rect.width, rect.height)
+        let line = max(side * 0.11, 0.6)
+        let radius = side * cornerFraction
+        let hole = rect.insetBy(dx: line, dy: line)
+
+        var path = Path(roundedRect: rect, cornerRadius: radius)
+        path.addPath(Path(roundedRect: hole, cornerRadius: max(radius - line, 0)))
+        if dotted {
+            let dot = side * 0.28
+            path.addEllipse(in: CGRect(
+                x: rect.midX - dot / 2, y: rect.midY - dot / 2, width: dot, height: dot
+            ))
+        }
+        return path
     }
 }
 

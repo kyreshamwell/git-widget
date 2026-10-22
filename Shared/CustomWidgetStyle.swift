@@ -29,6 +29,28 @@ struct CustomWidgetStyle: Codable, Equatable, Sendable {
         font: .rounded,
         glows: true
     )
+
+    /// Where each new saved style starts, taken in turn, so a second style
+    /// doesn't open as a copy of the first. The first is the default above.
+    static let starters: [CustomWidgetStyle] = [
+        .default,
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0x0F2E2B), backgroundEnd: RGBAColor(hex: 0x061716), usesGradient: true,
+            squares: RGBAColor(hex: 0x5EEAD4), shape: .square, font: .monospaced, glows: true
+        ),
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0x14213D), backgroundEnd: RGBAColor(hex: 0x0A1020), usesGradient: true,
+            squares: RGBAColor(hex: 0x7DD3FC), shape: .rounded, font: .standard, glows: false
+        ),
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0xFFF8E7), backgroundEnd: RGBAColor(hex: 0xFFF8E7), usesGradient: false,
+            squares: RGBAColor(hex: 0xD9480F), shape: .dot, font: .serif, glows: false
+        ),
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0x3B0A45), backgroundEnd: RGBAColor(hex: 0x1A0420), usesGradient: true,
+            squares: RGBAColor(hex: 0xF9A8D4), shape: .rounded, font: .rounded, glows: true
+        ),
+    ]
 }
 
 // MARK: - Choices

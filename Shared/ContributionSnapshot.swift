@@ -66,48 +66,32 @@ struct ContributionSnapshot: Codable {
 // committedToday == true all through today; deriving them means a stale
 // snapshot degrades to an honest answer instead of a confidently wrong one.
 //
+// The working out lives in `StreakHistory`, which also applies rest days and
+// freezes. What's here is the same answers with none applied: the streak
+// exactly as GitHub's own squares give it.
+//
 // Note these read only the retained window (up to 52 weeks), so a streak longer
 // than ~366 days reports as the window length. Not worth extra storage.
 extension ContributionSnapshot {
-    private var gregorian: Calendar { Calendar(identifier: .gregorian) }
-
-    /// Most recent day with any contribution, or nil if the window is empty.
-    var lastContributionDate: Date? {
-        guard let end = endDate,
-              let index = recentLevels.lastIndex(where: { $0 > 0 }) else { return nil }
-        let daysBack = recentLevels.count - 1 - index
-        return gregorian.date(byAdding: .day, value: -daysBack, to: end)
+    func history(protection: StreakProtection = .none, asOf now: Date = Date()) -> StreakHistory {
+        StreakHistory(snapshot: self, protection: protection, asOf: now)
     }
 
-    /// The counter the whole notification ladder keys off:
-    ///   0  — pushed today
-    ///   1  — pushed yesterday; streak alive but at risk
-    ///   2  — missed exactly one full day
-    ///   n  — missed n-1 full days
-    /// nil — no contribution anywhere in the retained window.
+    /// See `StreakHistory.gap`.
     func daysSinceLastContribution(asOf now: Date) -> Int? {
-        guard let last = lastContributionDate else { return nil }
-        return gregorian.dateComponents(
-            [.day],
-            from: gregorian.startOfDay(for: last),
-            to: gregorian.startOfDay(for: now)
-        ).day
+        history(asOf: now).gap
     }
 
     var daysSinceLastContribution: Int? { daysSinceLastContribution(asOf: Date()) }
 
     func committedToday(asOf now: Date) -> Bool {
-        daysSinceLastContribution(asOf: now) == 0
+        history(asOf: now).pushedToday
     }
 
     var committedToday: Bool { committedToday(asOf: Date()) }
 
-    /// Consecutive contribution days counting back from the last active day —
-    /// but only if that day is today or yesterday. Two days of silence means
-    /// the streak is gone, so this returns 0.
     func currentStreak(asOf now: Date) -> Int {
-        guard let gap = daysSinceLastContribution(asOf: now), gap <= 1 else { return 0 }
-        return runEndingAtLastContribution
+        history(asOf: now).streak
     }
 
     var currentStreak: Int { currentStreak(asOf: Date()) }
@@ -116,29 +100,8 @@ extension ContributionSnapshot {
     /// an earlier day has no entries for the days since, which count as empty,
     /// so the last element is always today and never a stale yesterday.
     func levels(lastDays count: Int, asOf now: Date) -> [Int] {
-        let missing = endDate.flatMap {
-            gregorian.dateComponents(
-                [.day],
-                from: gregorian.startOfDay(for: $0),
-                to: gregorian.startOfDay(for: now)
-            ).day
-        } ?? 0
-        let padded = recentLevels + Array(repeating: 0, count: min(max(missing, 0), count))
-        let tail = padded.suffix(count)
-        return Array(repeating: 0, count: count - tail.count) + tail
+        history(asOf: now).days(last: count).map(\.level)
     }
 
-    /// Length of the run that just ended, regardless of how long ago it ended.
-    /// Powers "your 15-day streak ended" on the first dormant day.
-    var streakBeforeBreak: Int { runEndingAtLastContribution }
-
-    private var runEndingAtLastContribution: Int {
-        guard var index = recentLevels.lastIndex(where: { $0 > 0 }) else { return 0 }
-        var count = 0
-        while index >= 0 && recentLevels[index] > 0 {
-            count += 1
-            index -= 1
-        }
-        return count
-    }
+    var streakBeforeBreak: Int { history().streakBeforeBreak }
 }

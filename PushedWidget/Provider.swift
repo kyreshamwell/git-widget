@@ -3,28 +3,47 @@ import WidgetKit
 struct StreakEntry: TimelineEntry {
     let date: Date
     let snapshot: ContributionSnapshot?
+    /// Always a style that can be drawn: Daily Rotation and the saved style
+    /// picked in Edit Widget have been turned into the real thing by now.
     let style: WidgetStyle
     let layout: WidgetLayout
-    /// Read when the entry is made, so editing the custom style in the app and
-    /// reloading timelines is all it takes to repaint Custom widgets.
+    /// Read when the entry is made, so editing a saved style in the app and
+    /// reloading timelines is all it takes to repaint the widgets wearing it.
     let custom: CustomWidgetStyle
+    /// Rest days and freezes, read the same way.
+    let protection: StreakProtection
 
     init(
         date: Date,
         snapshot: ContributionSnapshot?,
         style: WidgetStyle = .classic,
         layout: WidgetLayout = .graph,
-        custom: CustomWidgetStyle = AppConfig.customStyle
+        custom: CustomWidgetStyle = .default,
+        protection: StreakProtection = AppConfig.streakProtection
     ) {
         self.date = date
         self.snapshot = snapshot
         self.style = style
         self.layout = layout
         self.custom = custom
+        self.protection = protection
     }
 
+    /// The look is worked out for the entry's own date, so an entry made for
+    /// midnight already wears tomorrow's turn of the rotation.
     init(date: Date, snapshot: ContributionSnapshot?, configuration: WidgetOptionsIntent) {
-        self.init(date: date, snapshot: snapshot, style: configuration.style, layout: configuration.layout)
+        let look = AppConfig.styleLibrary.look(
+            for: configuration.style,
+            saved: configuration.saved.flatMap { UUID(uuidString: $0.id) },
+            on: date
+        )
+        self.init(
+            date: date,
+            snapshot: snapshot,
+            style: look.style,
+            layout: configuration.layout,
+            custom: look.custom
+        )
     }
 }
 
@@ -42,15 +61,33 @@ struct Provider: AppIntentTimelineProvider {
         return StreakEntry(date: Date(), snapshot: snapshot, configuration: configuration)
     }
 
-    /// Doubles as the notification reconciliation hook. This is the only code
-    /// in the app iOS runs on a schedule with fresh GitHub data, so it's what
-    /// cancels "you haven't pushed today" once you actually have. No extra
-    /// background budget needed, it was already running for the widget.
     func timeline(for configuration: WidgetOptionsIntent, in context: Context) async -> Timeline<StreakEntry> {
+        let refresh = await WidgetRefresh.run(now: Date())
+        return Timeline(
+            entries: refresh.entryDates.map {
+                StreakEntry(date: $0, snapshot: refresh.snapshot, configuration: configuration)
+            },
+            policy: refresh.policy
+        )
+    }
+}
+
+/// The work behind every Pushed widget's timeline: fresh data if it's due,
+/// and when to come back.
+///
+/// Doubles as the notification reconciliation hook. This is the only code in
+/// the app iOS runs on a schedule with fresh GitHub data, so it's what cancels
+/// "you haven't pushed today" once you actually have. No extra background
+/// budget needed, it was already running for the widget.
+struct WidgetRefresh {
+    let snapshot: ContributionSnapshot?
+    let entryDates: [Date]
+    let policy: TimelineReloadPolicy
+
+    static func run(now: Date) async -> WidgetRefresh {
         #if DEBUG
         if DemoMode.isActive {
-            let entry = StreakEntry(date: Date(), snapshot: ContributionSnapshot.load(), configuration: configuration)
-            return Timeline(entries: [entry], policy: .never)
+            return WidgetRefresh(snapshot: ContributionSnapshot.load(), entryDates: entryDates(from: now), policy: .never)
         }
         #endif
 
@@ -58,17 +95,15 @@ struct Provider: AppIntentTimelineProvider {
         let token = KeychainHelper.read(account: AppConfig.keychainAccount)
 
         guard let username, let token, !username.isEmpty, !token.isEmpty else {
-            let entry = StreakEntry(date: Date(), snapshot: nil, configuration: configuration)
-            return Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(3600)))
+            return WidgetRefresh(snapshot: nil, entryDates: [now], policy: .after(now.addingTimeInterval(3600)))
         }
 
-        let now = Date()
         var snapshot = ContributionSnapshot.load()
 
         // Every widget with its own options gets its own timeline call, and
-        // the app reloads them all as a custom style is edited. Data fetched
-        // moments ago by one of those calls, or by the app's own refresh, is
-        // as fresh as a new request would be.
+        // the app reloads them all as a style is edited. Data fetched moments
+        // ago by one of those calls, or by the app's own refresh, is as fresh
+        // as a new request would be.
         let fetchedRecently = snapshot.map { now.timeIntervalSince($0.fetchedAt) < 120 } ?? false
 
         if !fetchedRecently {
@@ -90,10 +125,21 @@ struct Provider: AppIntentTimelineProvider {
         }
 
         let outcome = await NotificationCoordinator.reconcile(snapshot: snapshot, now: now)
-        let entry = StreakEntry(date: now, snapshot: snapshot, configuration: configuration)
-        return Timeline(
-            entries: [entry],
+        return WidgetRefresh(
+            snapshot: TestScenario.current.snapshot(replacing: snapshot, now: now),
+            entryDates: entryDates(from: now),
             policy: .after(now.addingTimeInterval(outcome.refreshInterval(now: now)))
         )
+    }
+
+    /// Now, and the coming midnight. Each entry is drawn for its own date, so
+    /// the second one already shows the new day: yesterday's "committed
+    /// today" is gone and a rest day is marked the moment it starts, even if
+    /// iOS is late with the next refresh.
+    static func entryDates(from now: Date, calendar: Calendar = Calendar(identifier: .gregorian)) -> [Date] {
+        guard let midnight = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) else {
+            return [now]
+        }
+        return [now, midnight]
     }
 }

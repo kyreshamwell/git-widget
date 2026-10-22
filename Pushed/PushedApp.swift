@@ -43,6 +43,12 @@ struct PushedApp: App {
             PushedApp.handle(refreshTask)
         }
 
+        // Pretend data must never reach a public build, even one restored
+        // from a TestFlight install's backup.
+        if !BuildEnvironment.showsDebugTools {
+            TestScenario.reset()
+        }
+
         #if DEBUG
         DemoMode.applyLaunchArguments()
         if SelfCheck.isRequested {

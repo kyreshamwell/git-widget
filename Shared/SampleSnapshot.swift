@@ -7,7 +7,10 @@ extension ContributionSnapshot {
     ///
     /// Stands in wherever real data can't: the widget gallery before anyone
     /// has connected, the in-app style previews, and demo screenshots.
-    static func sample(streak: Int = 12, asOf now: Date = Date()) -> ContributionSnapshot {
+    ///
+    /// `quiet` leaves that many days empty at the end, today included: 1 for
+    /// a streak that's waiting on today, 2 for one that ended yesterday.
+    static func sample(streak: Int = 12, quiet: Int = 0, asOf now: Date = Date()) -> ContributionSnapshot {
         let calendar = Calendar(identifier: .gregorian)
         let weekday = calendar.component(.weekday, from: now) // Sunday = 1
         // 52 full weeks plus this week so far, the same shape `from(_:)` keeps.
@@ -19,9 +22,11 @@ extension ContributionSnapshot {
             let daysAgo = dayCount - 1 - index
             let dayOfWeek = ((weekday - 1 - daysAgo) % 7 + 7) % 7 // 0 = Sunday
             let active: Bool
-            if daysAgo < streak {
+            if daysAgo < quiet {
+                active = false
+            } else if daysAgo < quiet + streak {
                 active = true
-            } else if daysAgo == streak || (140...150).contains(daysAgo) {
+            } else if daysAgo == quiet + streak || (140...150).contains(daysAgo) {
                 active = false // the break before this streak, and a holiday
             } else {
                 let isWeekend = dayOfWeek == 0 || dayOfWeek == 6
