@@ -12,7 +12,11 @@ struct PushedWidgetEntryView: View {
             family: family,
             style: entry.style,
             layout: entry.layout,
+            weeks: entry.weeks,
+            stat: entry.stat,
             custom: entry.custom,
+            protection: entry.protection,
+            now: entry.date,
             margins: margins
         )
     }
@@ -27,7 +31,7 @@ struct PushedWidget: Widget {
                 .modifier(StyleContainerBackground(style: entry.style, custom: entry.custom))
         }
         .configurationDisplayName("Contribution Graph")
-        .description("Your GitHub contribution graph and commit streak, in five styles or one you design.")
+        .description("Your GitHub contribution graph and commit streak, in five styles, your own designs, or a different one each day.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
         // StreakWidgetView applies the standard margins itself, trimmed for
         // the graph layout so the squares can run closer to the edges.
@@ -54,6 +58,7 @@ private struct StyleContainerBackground: ViewModifier {
 struct PushedWidgetBundle: WidgetBundle {
     var body: some Widget {
         PushedWidget()
+        PushedLockWidget()
     }
 }
 

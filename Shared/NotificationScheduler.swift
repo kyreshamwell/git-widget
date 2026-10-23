@@ -214,7 +214,8 @@ enum NotificationCoordinator {
         now: Date = Date()
     ) async -> ReconcileOutcome {
         let context = NotificationContext(
-            snapshot: snapshot,
+            snapshot: TestScenario.current.snapshot(replacing: snapshot, now: now),
+            protection: AppConfig.streakProtection,
             settings: AppConfig.notificationSettings,
             tokenExpiry: AppConfig.tokenExpiry,
             lastCelebratedStreak: AppConfig.lastCelebratedStreak,

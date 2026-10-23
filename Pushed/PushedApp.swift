@@ -43,6 +43,15 @@ struct PushedApp: App {
             PushedApp.handle(refreshTask)
         }
 
+        AppConfig.backfillTrackingStart()
+        TestScenario.expireIfNeeded()
+
+        // Pretend data must never reach a public build, even one restored
+        // from a TestFlight install's backup.
+        if !BuildEnvironment.showsDebugTools {
+            TestScenario.reset()
+        }
+
         #if DEBUG
         DemoMode.applyLaunchArguments()
         if SelfCheck.isRequested {
@@ -60,6 +69,7 @@ struct PushedApp: App {
             case .active:
                 // Foregrounding is the most accurate reconciliation available —
                 // fresh data, no background budget in the way.
+                TestScenario.expireIfNeeded()
                 Task { await NotificationCoordinator.reconcile() }
             case .background:
                 PushedApp.scheduleBackgroundRefresh()

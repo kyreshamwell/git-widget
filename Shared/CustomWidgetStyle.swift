@@ -17,6 +17,17 @@ struct CustomWidgetStyle: Codable, Equatable, Sendable {
     var shape: CellShapeChoice
     var font: FontChoice
     var glows: Bool
+    /// The color of a day with nothing on it. Nil works one out from the
+    /// backdrop, which is what keeps it readable on any background.
+    var emptySquares: RGBAColor? = nil
+    /// The outline color for the day a streak ended. Nil leaves it like any
+    /// other empty day.
+    var missedSquares: RGBAColor? = nil
+    var spacing: SpacingChoice = .standard
+    /// Just the number and the squares: no labels, captions or status words.
+    var minimal = false
+    /// How heavy the big number is.
+    var weight: WeightChoice = .bold
 
     /// Where a new custom style starts: coral squares on a midnight gradient,
     /// a look none of the built-in styles cover.
@@ -29,12 +40,34 @@ struct CustomWidgetStyle: Codable, Equatable, Sendable {
         font: .rounded,
         glows: true
     )
+
+    /// Where each new saved style starts, taken in turn, so a second style
+    /// doesn't open as a copy of the first. The first is the default above.
+    static let starters: [CustomWidgetStyle] = [
+        .default,
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0x0F2E2B), backgroundEnd: RGBAColor(hex: 0x061716), usesGradient: true,
+            squares: RGBAColor(hex: 0x5EEAD4), shape: .square, font: .monospaced, glows: true
+        ),
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0x14213D), backgroundEnd: RGBAColor(hex: 0x0A1020), usesGradient: true,
+            squares: RGBAColor(hex: 0x7DD3FC), shape: .rounded, font: .standard, glows: false
+        ),
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0xFFF8E7), backgroundEnd: RGBAColor(hex: 0xFFF8E7), usesGradient: false,
+            squares: RGBAColor(hex: 0xD9480F), shape: .dot, font: .serif, glows: false
+        ),
+        CustomWidgetStyle(
+            background: RGBAColor(hex: 0x3B0A45), backgroundEnd: RGBAColor(hex: 0x1A0420), usesGradient: true,
+            squares: RGBAColor(hex: 0xF9A8D4), shape: .rounded, font: .rounded, glows: true
+        ),
+    ]
 }
 
 // MARK: - Choices
 
 enum CellShapeChoice: String, Codable, CaseIterable, Identifiable, Sendable {
-    case square, rounded, dot
+    case square, rounded, dot, diamond, hexagon, heart, star
 
     var id: String { rawValue }
 
@@ -43,20 +76,81 @@ enum CellShapeChoice: String, Codable, CaseIterable, Identifiable, Sendable {
         case .square: "Square"
         case .rounded: "Rounded"
         case .dot: "Dot"
+        case .diamond: "Diamond"
+        case .hexagon: "Hexagon"
+        case .heart: "Heart"
+        case .star: "Star"
         }
     }
 
+    /// Only boxes use it; the other forms have no corners to round.
     var cornerFraction: CGFloat {
         switch self {
         case .square: 0
-        case .rounded: 0.28
         case .dot: 0.5
+        default: 0.28
+        }
+    }
+
+    var form: CellForm {
+        switch self {
+        case .square, .rounded, .dot: .box
+        case .diamond: .diamond
+        case .hexagon: .hexagon
+        case .heart: .heart
+        case .star: .star
+        }
+    }
+}
+
+enum WeightChoice: String, Codable, CaseIterable, Identifiable, Sendable {
+    case light, regular, bold, heavy
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .light: "Light"
+        case .regular: "Regular"
+        case .bold: "Bold"
+        case .heavy: "Heavy"
+        }
+    }
+
+    var weight: Font.Weight {
+        switch self {
+        case .light: .light
+        case .regular: .regular
+        case .bold: .bold
+        case .heavy: .heavy
+        }
+    }
+}
+
+enum SpacingChoice: String, Codable, CaseIterable, Identifiable, Sendable {
+    case tight, standard, roomy
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .tight: "Tight"
+        case .standard: "Standard"
+        case .roomy: "Roomy"
+        }
+    }
+
+    var scale: CGFloat {
+        switch self {
+        case .tight: 0.4
+        case .standard: 1
+        case .roomy: 1.8
         }
     }
 }
 
 enum FontChoice: String, Codable, CaseIterable, Identifiable, Sendable {
-    case standard, rounded, monospaced, serif
+    case standard, rounded, monospaced, serif, condensed, wide
 
     var id: String { rawValue }
 
@@ -66,12 +160,22 @@ enum FontChoice: String, Codable, CaseIterable, Identifiable, Sendable {
         case .rounded: "Rounded"
         case .monospaced: "Mono"
         case .serif: "Serif"
+        case .condensed: "Condensed"
+        case .wide: "Wide"
+        }
+    }
+
+    var width: Font.Width {
+        switch self {
+        case .condensed: .compressed
+        case .wide: .expanded
+        default: .standard
         }
     }
 
     var design: Font.Design {
         switch self {
-        case .standard: .default
+        case .standard, .condensed, .wide: .default
         case .rounded: .rounded
         case .monospaced: .monospaced
         case .serif: .serif
@@ -105,14 +209,38 @@ extension CustomWidgetStyle {
 
     var colorScheme: ColorScheme { usesLightText ? .dark : .light }
 
+    /// Ice blue, unless the squares are already close to it, in which case a
+    /// freeze would pass for a busy day. Then it takes the text color.
+    private var freezeColor: Color {
+        let ice = RGBAColor(hex: usesLightText ? 0x7DD3FC : 0x0284C7)
+        let distance = sqrt(
+            pow(ice.red - squares.red, 2) + pow(ice.green - squares.green, 2) + pow(ice.blue - squares.blue, 2)
+        )
+        return distance < 0.35 ? (usesLightText ? Color.white : RGBAColor.ink.color) : ice.color
+    }
+
+    /// Whether a picked empty-day color can still be told from the
+    /// backdrop. The automatic one always can.
+    var emptySquaresShow: Bool {
+        guard let emptySquares else { return true }
+        return backdrop.allSatisfy { $0.contrast(with: emptySquares) >= 1.15 }
+    }
+
+    /// Whether a picked missed-day color can be told from the backdrop.
+    var missedSquaresShow: Bool {
+        guard let missedSquares else { return true }
+        return backdrop.allSatisfy { $0.contrast(with: missedSquares) >= 1.15 }
+    }
+
     var theme: WidgetTheme {
         let ink = usesLightText ? Color.white : RGBAColor.ink.color
         let fill = squares.color
         let accent = squaresStandOut ? fill : ink
         return WidgetTheme(
-            // Empty days are a veil of the text color, so they read on any
-            // backdrop; active days step up through the square color.
-            levels: [ink.opacity(usesLightText ? 0.14 : 0.09)]
+            // Empty days are a veil of the text color unless one was picked,
+            // so they read on any backdrop; active days step up through the
+            // square color.
+            levels: [emptySquares?.color ?? ink.opacity(usesLightText ? 0.14 : 0.09)]
                 + [0.35, 0.55, 0.78, 1].map { fill.opacity($0) },
             primaryText: ink,
             secondaryText: ink.opacity(0.7),
@@ -124,7 +252,14 @@ extension CustomWidgetStyle {
             fontDesign: font.design,
             // The square color could be anything, orange included, so "not
             // yet" is a ring instead of a color that might match it.
-            ringsPending: true
+            ringsPending: true,
+            spacing: spacing.scale,
+            hidesText: minimal,
+            form: shape.form,
+            fontWidth: font.width,
+            numberWeight: weight.weight,
+            freeze: freezeColor,
+            missed: missedSquares?.color
         )
     }
 }
@@ -134,6 +269,7 @@ extension CustomWidgetStyle {
 extension CustomWidgetStyle {
     private enum CodingKeys: String, CodingKey {
         case background, backgroundEnd, usesGradient, squares, shape, font, glows
+        case emptySquares, missedSquares, spacing, minimal, weight
     }
 
     /// A field that's missing or unreadable (one added in a later version, or
@@ -152,6 +288,11 @@ extension CustomWidgetStyle {
         shape = value(.shape, fallback.shape)
         font = value(.font, fallback.font)
         glows = value(.glows, fallback.glows)
+        emptySquares = try? container.decodeIfPresent(RGBAColor.self, forKey: .emptySquares)
+        missedSquares = try? container.decodeIfPresent(RGBAColor.self, forKey: .missedSquares)
+        spacing = value(.spacing, fallback.spacing)
+        minimal = value(.minimal, fallback.minimal)
+        weight = value(.weight, fallback.weight)
     }
 }
 

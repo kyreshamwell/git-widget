@@ -26,6 +26,7 @@ struct NotificationSettings: Equatable {
 /// what makes the whole ladder testable without touching the clock.
 struct NotificationContext {
     var snapshot: ContributionSnapshot?
+    var protection: StreakProtection = .none
     var settings: NotificationSettings = .default
     var tokenExpiry: Date?
     var lastCelebratedStreak: Int = 0
@@ -124,25 +125,40 @@ enum NotificationPlanner {
     private static func commitNotifications(_ context: NotificationContext) -> [PlannedNotification] {
         guard let snapshot = context.snapshot else { return [] }
         guard context.now.timeIntervalSince(snapshot.fetchedAt) < maxSnapshotAge else { return [] }
-        guard let gap = snapshot.daysSinceLastContribution(asOf: context.now) else { return [] }
+        // The same reading the widget draws from, rest days and freezes
+        // included, so a reminder can't warn about a streak the home screen
+        // shows as safe.
+        let history = StreakHistory(
+            snapshot: snapshot, protection: context.protection, asOf: context.now, calendar: context.calendar
+        )
+        guard let gap = history.gap else { return [] }
 
         // Pushed today: the day's work is done. Only a celebration can fire.
         if gap == 0 {
-            return milestoneNotification(snapshot, context).map { [$0] } ?? []
+            return milestoneNotification(history, context).map { [$0] } ?? []
         }
 
+        // Yesterday can only be covered today, so this one speaks up even on
+        // a day off.
+        if history.canSaveStreak, let rescue = streakCanBeSaved(history, context) {
+            return [rescue]
+        }
+
+        // A rest day or a freeze: nothing is owed today.
+        if case .off = history.today { return [] }
+
         return gap == 1
-            ? streakAtRisk(snapshot, context)
-            : dormant(snapshot, gap: gap, context: context)
+            ? streakAtRisk(history, context)
+            : dormant(history, gap: gap, context: context)
     }
 
-    /// Pushed yesterday, nothing today — there's a real streak on the line.
+    /// Kept through yesterday, nothing today: there's a real streak on the line.
     /// Both slots fire, every day. This user has earned the volume.
     private static func streakAtRisk(
-        _ snapshot: ContributionSnapshot,
+        _ history: StreakHistory,
         _ context: NotificationContext
     ) -> [PlannedNotification] {
-        let streak = snapshot.currentStreak(asOf: context.now)
+        let streak = history.streak
         var out: [PlannedNotification] = []
 
         if let fire = middayFire(context) {
@@ -164,6 +180,10 @@ enum NotificationPlanner {
         if let fire = eveningFire(context) {
             let hours = hoursUntilMidnight(from: fire, calendar: context.calendar)
             let remaining = hours <= 0 ? "Less than an hour left." : "About \(hours) hour\(hours == 1 ? "" : "s") left."
+            // The other way out, if tonight's push isn't going to happen.
+            let fallback = history.canClaim(.rest, daysAgo: 0) ? "You still have a rest day this week."
+                : history.canClaim(.freeze, daysAgo: 0) ? "Your freeze is still unused."
+                : nil
             let title: String
             let body: String
             switch streak {
@@ -172,13 +192,13 @@ enum NotificationPlanner {
                 body = "One push tonight makes it two."
             case 2...13:
                 title = "Your \(streak)-day streak ends at midnight"
-                body = remaining
+                body = [remaining, fallback].compactMap { $0 }.joined(separator: " ")
             case 14...29:
                 title = "\(streak) days on the line"
-                body = "Midnight. \(remaining)"
+                body = ["Midnight.", remaining, fallback].compactMap { $0 }.joined(separator: " ")
             default:
                 title = "\(streak) days on the line"
-                body = "\(remaining) Don't break it now."
+                body = "\(remaining) \(fallback ?? "Don't break it now.")"
             }
             out.append(PlannedNotification(
                 id: dailyID("evening", context),
@@ -191,12 +211,41 @@ enum NotificationPlanner {
         return out
     }
 
+    /// Yesterday was missed, but a rest day or the freeze can still cover it,
+    /// and only until midnight. Worth the earlier slot, and the later one if
+    /// that's already gone by.
+    private static func streakCanBeSaved(
+        _ history: StreakHistory,
+        _ context: NotificationContext
+    ) -> PlannedNotification? {
+        let previous = history.streakBeforeBreak
+        guard previous >= 2 else { return nil }
+
+        let slot: String
+        let fire: Date
+        if let midday = middayFire(context) {
+            (slot, fire) = ("midday", midday)
+        } else if let evening = eveningFire(context) {
+            (slot, fire) = ("evening", evening)
+        } else {
+            return nil
+        }
+
+        let way = history.canClaim(.rest, daysAgo: 1) ? "a rest day" : "your freeze"
+        return PlannedNotification(
+            id: dailyID(slot, context),
+            title: "Your \(previous)-day streak can still be saved",
+            body: "Yesterday's square is empty. Use \(way) in Pushed today to keep it.",
+            fireDate: fire
+        )
+    }
+
     /// Streak is already gone, so there's no midnight deadline to warn about —
     /// one notification per firing day, and the frequency tapers the longer the
     /// silence runs. An app that nags daily for a month gets deleted before the
     /// comeback it was hoping for.
     private static func dormant(
-        _ snapshot: ContributionSnapshot,
+        _ history: StreakHistory,
         gap: Int,
         context: NotificationContext
     ) -> [PlannedNotification] {
@@ -212,7 +261,7 @@ enum NotificationPlanner {
             // The streak died yesterday. Naming what was lost beats a generic
             // "you missed a day" — it's the difference between the app knowing
             // you and not.
-            let previous = snapshot.streakBeforeBreak
+            let previous = history.streakBeforeBreak
             if previous >= 7 {
                 title = "Your \(previous)-day streak ended"
                 body = "Start the next one today."
@@ -261,12 +310,12 @@ enum NotificationPlanner {
     // MARK: - Milestones
 
     private static func milestoneNotification(
-        _ snapshot: ContributionSnapshot,
+        _ history: StreakHistory,
         _ context: NotificationContext
     ) -> PlannedNotification? {
         guard context.settings.milestonesEnabled else { return nil }
 
-        let streak = snapshot.currentStreak(asOf: context.now)
+        let streak = history.streak
         guard let reached = milestones.last(where: { $0 <= streak }) else { return nil }
 
         // Comparing against the last celebrated value (rather than "greater
@@ -286,9 +335,13 @@ enum NotificationPlanner {
     /// connected. Someone who installs mid-streak shouldn't be congratulated
     /// for a mark they hit before the app existed — but their *next* one should
     /// still land.
-    static func milestoneBaseline(for snapshot: ContributionSnapshot?, asOf now: Date) -> Int {
+    static func milestoneBaseline(
+        for snapshot: ContributionSnapshot?,
+        protection: StreakProtection = .none,
+        asOf now: Date
+    ) -> Int {
         guard let snapshot else { return 0 }
-        let streak = snapshot.currentStreak(asOf: now)
+        let streak = snapshot.history(protection: protection, asOf: now).streak
         return milestones.last(where: { $0 <= streak }) ?? 0
     }
 

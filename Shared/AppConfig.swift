@@ -20,16 +20,76 @@ enum AppConfig {
         set { sharedDefaults.set(newValue, forKey: streakIconKey) }
     }
 
+    /// Where the one custom style lived before there was a library. Only
+    /// read now, to carry that design over.
     static let customStyleKey = "custom-widget-style"
+    static let styleLibraryKey = "widget-style-library"
 
-    /// The style designed in the app, shared by every widget set to Custom.
-    static var customStyle: CustomWidgetStyle {
+    /// The saved custom styles, shared with the widget.
+    static var styleLibrary: StyleLibrary {
         get {
-            sharedDefaults.data(forKey: customStyleKey)
+            if let data = sharedDefaults.data(forKey: styleLibraryKey),
+               let library = try? JSONDecoder().decode(StyleLibrary.self, from: data),
+               !library.styles.isEmpty {
+                return library
+            }
+            let earlier = sharedDefaults.data(forKey: customStyleKey)
                 .flatMap { try? JSONDecoder().decode(CustomWidgetStyle.self, from: $0) }
-                ?? .default
+            return .starting(with: earlier ?? .default)
         }
-        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: customStyleKey) }
+        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: styleLibraryKey) }
+    }
+
+    static let dayOffMarkKey = "day-off-mark"
+
+    /// How rest days and freezes are marked, in the app and every widget.
+    static var dayOffMark: DayOffMark {
+        get { sharedDefaults.string(forKey: dayOffMarkKey).flatMap(DayOffMark.init) ?? .stripes }
+        set { sharedDefaults.set(newValue.rawValue, forKey: dayOffMarkKey) }
+    }
+
+    static let streakProtectionKey = "streak-protection"
+
+    /// Rest days and freezes. Shared, because the widget and the reminders
+    /// work the streak out from it as well.
+    static var streakProtection: StreakProtection {
+        get {
+            sharedDefaults.data(forKey: streakProtectionKey)
+                .flatMap { try? JSONDecoder().decode(StreakProtection.self, from: $0) }
+                ?? .initial
+        }
+        set { sharedDefaults.set(try? JSONEncoder().encode(newValue), forKey: streakProtectionKey) }
+    }
+
+    /// Claimed days and the day tracking began belong to one account's
+    /// history. The chosen weekdays are a habit of the person holding the
+    /// phone, so those stay.
+    static func forgetAccountHistory() {
+        var protection = streakProtection
+        protection.claims = [:]
+        protection.trackedSince = nil
+        streakProtection = protection
+    }
+
+    /// Marks today as the day Pushed started watching this account.
+    static func startTracking(on day: Date = Date()) {
+        var protection = streakProtection
+        protection.trackedSince = StreakProtection.key(day)
+        streakProtection = protection
+    }
+
+    /// Accounts connected before there was a start date have none saved. The
+    /// day the app was installed is the closest thing on record: its
+    /// Documents folder is made then. App only; the widget has its own.
+    static func backfillTrackingStart() {
+        guard streakProtection.trackedSince == nil,
+              let username = sharedDefaults.string(forKey: usernameDefaultsKey), !username.isEmpty
+        else { return }
+        let installed = (try? FileManager.default.url(
+            for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false
+        ))
+        .flatMap { try? FileManager.default.attributesOfItem(atPath: $0.path)[.creationDate] as? Date }
+        startTracking(on: installed ?? Date())
     }
 
     static var sharedDefaults: UserDefaults {

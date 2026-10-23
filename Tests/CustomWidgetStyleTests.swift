@@ -25,7 +25,7 @@ final class CustomWidgetStyleTests: XCTestCase {
 
     func testMissingOrUnknownFieldsFallBackWithoutLosingTheRest() throws {
         // A future version's shape, and no background saved at all.
-        let json = #"{"squares":{"red":1,"green":0,"blue":0,"opacity":1},"shape":"hexagon"}"#
+        let json = #"{"squares":{"red":1,"green":0,"blue":0,"opacity":1},"shape":"triangle"}"#
         let decoded = try JSONDecoder().decode(CustomWidgetStyle.self, from: Data(json.utf8))
 
         XCTAssertEqual(decoded.squares, RGBAColor(red: 1, green: 0, blue: 0), "the readable choice is kept")
@@ -83,6 +83,126 @@ final class CustomWidgetStyleTests: XCTestCase {
         let style = CustomWidgetStyle.default
         XCTAssertTrue(style.usesLightText)
         XCTAssertTrue(style.squaresStandOut)
+    }
+
+    func testAPickedEmptyColorIsUsedAndAnAutomaticOneIsWorkedOut() {
+        var style = CustomWidgetStyle.default
+        XCTAssertNil(style.emptySquares)
+        XCTAssertTrue(style.emptySquaresShow)
+
+        style.emptySquares = RGBAColor(hex: 0x445566)
+        XCTAssertEqual(RGBAColor(style.theme.levels[0]), RGBAColor(hex: 0x445566))
+    }
+
+    func testAnEmptyColorMatchingTheBackdropIsFlagged() {
+        var style = solid(0x0B1026)
+        style.emptySquares = RGBAColor(hex: 0x0B1026)
+        XCTAssertFalse(style.emptySquaresShow)
+    }
+
+    func testSpacingAndMinimalReachTheTheme() {
+        var style = CustomWidgetStyle.default
+        XCTAssertEqual(style.theme.spacing, 1)
+        XCTAssertFalse(style.theme.hidesText)
+
+        style.spacing = .roomy
+        style.minimal = true
+        XCTAssertGreaterThan(style.theme.spacing, 1)
+        XCTAssertTrue(style.theme.hidesText)
+        XCTAssertTrue(style.theme.monochrome.hidesText, "a tinted home screen keeps it minimal")
+    }
+
+    func testAStyleSavedBeforeTheseOptionsGetsTheirDefaults() throws {
+        let json = #"{"squares":{"red":1,"green":0,"blue":0,"opacity":1},"shape":"dot"}"#
+        let decoded = try JSONDecoder().decode(CustomWidgetStyle.self, from: Data(json.utf8))
+
+        XCTAssertNil(decoded.emptySquares)
+        XCTAssertEqual(decoded.spacing, .standard)
+        XCTAssertFalse(decoded.minimal)
+        XCTAssertEqual(decoded.shape, .dot)
+    }
+
+    func testTheNewOptionsSurviveSaving() throws {
+        var style = CustomWidgetStyle.default
+        style.emptySquares = RGBAColor(hex: 0x222222)
+        style.spacing = .tight
+        style.minimal = true
+        let decoded = try JSONDecoder().decode(CustomWidgetStyle.self, from: JSONEncoder().encode(style))
+        XCTAssertEqual(decoded, style)
+    }
+
+    func testAMissedDayColorIsOptional() throws {
+        var style = CustomWidgetStyle.default
+        XCTAssertNil(style.theme.missed)
+
+        style.missedSquares = RGBAColor(hex: 0xE5484D)
+        XCTAssertEqual(style.theme.missed.map(RGBAColor.init), RGBAColor(hex: 0xE5484D))
+        XCTAssertNil(style.theme.monochrome.missed, "one tint can't color it apart")
+
+        let decoded = try JSONDecoder().decode(CustomWidgetStyle.self, from: JSONEncoder().encode(style))
+        XCTAssertEqual(decoded.missedSquares, style.missedSquares)
+    }
+
+    func testAMissedColorMatchingTheBackdropIsFlagged() {
+        var style = solid(0x0B1026)
+        XCTAssertTrue(style.missedSquaresShow, "none picked is fine")
+        style.missedSquares = RGBAColor(hex: 0x0B1026)
+        XCTAssertFalse(style.missedSquaresShow)
+        style.missedSquares = RGBAColor(hex: 0xE5484D)
+        XCTAssertTrue(style.missedSquaresShow)
+    }
+
+    func testEveryChoiceHasAName() {
+        for name in CellShapeChoice.allCases.map(\.name) + FontChoice.allCases.map(\.name)
+            + WeightChoice.allCases.map(\.name) + SpacingChoice.allCases.map(\.name)
+            + DayOffMark.allCases.map(\.name) + TestScenario.allCases.map(\.name) {
+            XCTAssertFalse(name.isEmpty)
+        }
+    }
+
+    func testEveryShapeHasAnOutlineToDraw() {
+        let rect = CGRect(x: 0, y: 0, width: 20, height: 20)
+        for shape in CellShapeChoice.allCases {
+            let path = CellShape(cornerFraction: shape.cornerFraction, form: shape.form).path(in: rect)
+            XCTAssertFalse(path.isEmpty, "\(shape)")
+            XCTAssertTrue(rect.insetBy(dx: -0.5, dy: -0.5).contains(path.boundingRect), "\(shape) stays inside its cell")
+        }
+    }
+
+    func testShapesAndTypeReachTheTheme() {
+        var style = CustomWidgetStyle.default
+        style.shape = .heart
+        style.font = .condensed
+        style.weight = .heavy
+        let theme = style.theme
+
+        XCTAssertEqual(theme.form, .heart)
+        XCTAssertEqual(theme.fontWidth, .compressed)
+        XCTAssertEqual(theme.numberWeight, .heavy)
+        XCTAssertEqual(theme.monochrome.form, .heart, "a tinted home screen keeps the shape")
+    }
+
+    func testAFreezeStaysApartFromBlueSquares() {
+        var blue = solid(0x0B1026)
+        blue.squares = RGBAColor(hex: 0x7DD3FC)
+        XCTAssertNotEqual(RGBAColor(blue.theme.freeze), RGBAColor(hex: 0x7DD3FC))
+
+        var coral = solid(0x0B1026)
+        coral.squares = RGBAColor(hex: 0xFF7A59)
+        XCTAssertEqual(RGBAColor(coral.theme.freeze), RGBAColor(hex: 0x7DD3FC), "ice blue everywhere else")
+    }
+
+    func testAStyleSavedBeforeWeightWasAChoiceStaysBold() throws {
+        let decoded = try JSONDecoder().decode(CustomWidgetStyle.self, from: Data(#"{"shape":"star"}"#.utf8))
+        XCTAssertEqual(decoded.weight, .bold)
+        XCTAssertEqual(decoded.shape, .star)
+    }
+
+    func testEveryStarterLookIsReadable() {
+        for (index, style) in CustomWidgetStyle.starters.enumerated() {
+            XCTAssertTrue(style.squaresStandOut, "starter \(index)")
+        }
+        XCTAssertEqual(Set(CustomWidgetStyle.starters.map(\.squares.red)).count, CustomWidgetStyle.starters.count, "no two alike")
     }
 
     func testNotYetIsARingSinceTheSquareColorCouldBeAnything() {
