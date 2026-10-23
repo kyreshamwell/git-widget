@@ -4,21 +4,21 @@ import Foundation
 struct SavedStyle: Codable, Equatable, Identifiable, Sendable {
     var id: UUID
     var name: String
-    /// Favorites are the ones that take turns in the daily rotation.
-    var isFavorite: Bool
+    /// Checked to take a turn in the daily rotation.
+    var inRotation: Bool
     var createdAt: Date
     var style: CustomWidgetStyle
 
     init(
         id: UUID = UUID(),
         name: String,
-        isFavorite: Bool = false,
+        inRotation: Bool = false,
         createdAt: Date = Date(),
         style: CustomWidgetStyle = .default
     ) {
         self.id = id
         self.name = name
-        self.isFavorite = isFavorite
+        self.inRotation = inRotation
         self.createdAt = createdAt
         self.style = style
     }
@@ -57,8 +57,8 @@ struct WidgetLook: Equatable, Sendable {
 /// needs something to show.
 struct StyleLibrary: Codable, Equatable, Sendable {
     var styles: [SavedStyle]
-    /// Whether the built-in styles take a turn in the daily rotation as well.
-    var rotatesBuiltIns = false
+    /// Built-in styles checked to take a turn in the daily rotation too.
+    var rotatingBuiltIns: [WidgetStyle] = []
 
     /// Enough to play with, short enough that Edit Widget's list stays usable.
     static let maxStyles = 24
@@ -132,12 +132,35 @@ extension StyleLibrary {
 // MARK: - What a widget shows
 
 extension StyleLibrary {
-    /// The styles that take turns: favorites, or every saved style when none
-    /// is marked, followed by the built-ins if those are included.
+    /// The styles that take turns: every checked one, yours first, then the
+    /// built-ins. One checked style simply stays put. With nothing checked,
+    /// all of your saved styles take turns, so the widget is never stuck.
     var rotation: [WidgetLook] {
-        let favorites = styles.filter(\.isFavorite)
-        let mine = (favorites.isEmpty ? styles : favorites).map(WidgetLook.init)
-        return mine + (rotatesBuiltIns ? WidgetStyle.builtIn.map(WidgetLook.init) : [])
+        let mine = styles.filter(\.inRotation).map(WidgetLook.init)
+        let builtIn = WidgetStyle.builtIn.filter(rotatingBuiltIns.contains).map(WidgetLook.init)
+        let checked = mine + builtIn
+        return checked.isEmpty ? styles.map(WidgetLook.init) : checked
+    }
+
+    /// Whether anything at all is checked, as opposed to the fallback.
+    var hasCheckedStyles: Bool {
+        styles.contains(where: \.inRotation) || !rotatingBuiltIns.isEmpty
+    }
+
+    func isInRotation(_ style: WidgetStyle) -> Bool {
+        rotatingBuiltIns.contains(style)
+    }
+
+    mutating func toggleRotation(_ style: WidgetStyle) {
+        if let index = rotatingBuiltIns.firstIndex(of: style) {
+            rotatingBuiltIns.remove(at: index)
+        } else if WidgetStyle.builtIn.contains(style) {
+            rotatingBuiltIns.append(style)
+        }
+    }
+
+    mutating func toggleRotation(_ id: UUID) {
+        self[id]?.inRotation.toggle()
     }
 
     /// The rotation's style for `day`. It's worked out from the date alone,
@@ -178,7 +201,7 @@ extension StyleLibrary {
 
 extension SavedStyle {
     private enum CodingKeys: String, CodingKey {
-        case id, name, isFavorite, createdAt, style
+        case id, name, inRotation, createdAt, style
     }
 
     /// Anything missing takes a default, so a style saved by another version
@@ -187,7 +210,7 @@ extension SavedStyle {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = (try? container.decodeIfPresent(UUID.self, forKey: .id)) ?? UUID()
         name = (try? container.decodeIfPresent(String.self, forKey: .name)) ?? ""
-        isFavorite = (try? container.decodeIfPresent(Bool.self, forKey: .isFavorite)) ?? false
+        inRotation = (try? container.decodeIfPresent(Bool.self, forKey: .inRotation)) ?? false
         createdAt = (try? container.decodeIfPresent(Date.self, forKey: .createdAt)) ?? .distantPast
         style = (try? container.decodeIfPresent(CustomWidgetStyle.self, forKey: .style)) ?? .default
     }
@@ -195,12 +218,12 @@ extension SavedStyle {
 
 extension StyleLibrary {
     private enum CodingKeys: String, CodingKey {
-        case styles, rotatesBuiltIns
+        case styles, rotatingBuiltIns
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         styles = (try? container.decodeIfPresent([SavedStyle].self, forKey: .styles)) ?? []
-        rotatesBuiltIns = (try? container.decodeIfPresent(Bool.self, forKey: .rotatesBuiltIns)) ?? false
+        rotatingBuiltIns = (try? container.decodeIfPresent([WidgetStyle].self, forKey: .rotatingBuiltIns)) ?? []
     }
 }

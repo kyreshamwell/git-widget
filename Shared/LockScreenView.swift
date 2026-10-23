@@ -3,7 +3,7 @@ import WidgetKit
 
 /// The Lock Screen draws everything in one tint, so these lean on shape and
 /// weight rather than color: a ring that closes once you've pushed, and the
-/// same outline-and-dot for a day off as on the home screen.
+/// same day-off mark as on the home screen.
 ///
 /// Lives in Shared rather than the extension so it can be drawn outside a
 /// widget too, the way the home-screen view is.
@@ -14,8 +14,14 @@ struct LockScreenView: View {
     var protection: StreakProtection = AppConfig.streakProtection
     var now = Date()
     var icon: String = AppConfig.streakIcon
+    var dayOffMark: DayOffMark = AppConfig.dayOffMark
 
     var body: some View {
+        content.environment(\.dayOffMark, dayOffMark)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         if let snapshot {
             let history = snapshot.history(protection: protection, asOf: now)
             switch family {

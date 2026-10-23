@@ -15,6 +15,7 @@ struct WidgetStyleGallery: View {
     @State private var family: WidgetFamily = .systemMedium
     @State private var library = AppConfig.styleLibrary
     @State private var editing: UUID?
+    @State private var deleting: SavedStyle?
 
     var body: some View {
         ScrollView {
@@ -41,6 +42,15 @@ struct WidgetStyleGallery: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
+                            RotationCheck(isOn: library.isInRotation(style)) {
+                                update { $0.toggleRotation(style) }
+                            }
+                            .padding(.top, 4)
+                        }
+                        .contextMenu {
+                            rotationButton(isOn: library.isInRotation(style)) {
+                                update { $0.toggleRotation(style) }
+                            }
                         }
                     }
                 }
@@ -59,32 +69,41 @@ struct WidgetStyleGallery: View {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 28) {
                     ForEach(library.styles) { saved in
                         card(WidgetLook(saved)) {
-                            HStack(spacing: 14) {
+                            HStack {
+                                RotationCheck(isOn: saved.inRotation) {
+                                    update { $0.toggleRotation(saved.id) }
+                                }
+                                Spacer()
                                 Button {
                                     editing = saved.id
                                 } label: {
                                     Label("Edit", systemImage: "paintbrush")
                                         .font(.subheadline.weight(.semibold))
                                 }
-                                Button {
-                                    toggleFavorite(saved.id)
-                                } label: {
-                                    Label(
-                                        saved.isFavorite ? "Favorite" : "Not a favorite",
-                                        systemImage: saved.isFavorite ? "star.fill" : "star"
-                                    )
-                                    .labelStyle(.iconOnly)
-                                    .foregroundStyle(saved.isFavorite ? Color.yellow : Color.secondary)
-                                }
                             }
-                            .padding(.top, 2)
+                            .padding(.top, 4)
                         }
                         .contentShape(Rectangle())
                         .onTapGesture { editing = saved.id }
+                        // Hold a style for everything at once, delete included,
+                        // without opening the editor first.
+                        .contextMenu {
+                            Button("Edit", systemImage: "paintbrush") { editing = saved.id }
+                            Button("Duplicate", systemImage: "plus.square.on.square") {
+                                update { $0.duplicate(saved.id) }
+                            }
+                            .disabled(!library.canAdd)
+                            rotationButton(isOn: saved.inRotation) {
+                                update { $0.toggleRotation(saved.id) }
+                            }
+                            Divider()
+                            Button("Delete", systemImage: "trash", role: .destructive) { deleting = saved }
+                                .disabled(!library.canRemove)
+                        }
                     }
                 }
 
-                Text("To use one, long-press a Pushed widget on your home screen, tap Edit Widget, then choose a Style and Layout. Pick Custom to wear one of your styles, or Daily Rotation for a different favorite each day. Each widget keeps its own, so you can mix them.")
+                Text("Check the styles you want in the Daily Rotation and they take turns, one a day. Check just one and it stays put. Hold any of your styles to edit, copy or delete it.\n\nTo use one, long-press a Pushed widget on your home screen, tap Edit Widget, then choose a Style and Layout. Pick Custom to wear one of your styles, or Daily Rotation for your checked ones. Each widget keeps its own, so you can mix them.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .padding(.top, 8)
@@ -96,6 +115,18 @@ struct WidgetStyleGallery: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $editing) { id in
             CustomStyleEditor(styleID: id, snapshot: snapshot, weeks: weeks, icon: icon)
+        }
+        .confirmationDialog(
+            "Delete \(deleting?.displayName ?? "this style")?",
+            isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+            titleVisibility: .visible,
+            presenting: deleting
+        ) { saved in
+            Button("Delete Style", role: .destructive) {
+                update { $0[saved.id] = nil }
+            }
+        } message: { _ in
+            Text("Widgets wearing it switch to your first saved style.")
         }
         // Coming back from the editor should show what was just designed.
         .onAppear { library = AppConfig.styleLibrary }
@@ -143,18 +174,47 @@ struct WidgetStyleGallery: View {
         editing = added.id
     }
 
-    private func toggleFavorite(_ id: UUID) {
+    /// Every change here goes through one place: saved, shown, and the
+    /// widgets repainted.
+    private func update(_ change: (inout StyleLibrary) -> Void) {
         var updated = AppConfig.styleLibrary
-        updated[id]?.isFavorite.toggle()
+        change(&updated)
         AppConfig.styleLibrary = updated
         library = updated
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    private func rotationButton(isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(
+            isOn ? "Remove from Rotation" : "Add to Rotation",
+            systemImage: isOn ? "minus.circle" : "checkmark.circle",
+            action: action
+        )
     }
 
     private var columns: [GridItem] {
         family == .systemSmall
             ? [GridItem(.flexible(), spacing: 16, alignment: .topLeading), GridItem(.flexible(), alignment: .topLeading)]
             : [GridItem(.flexible())]
+    }
+}
+
+/// The check bubble under a style: checked styles take turns in the Daily
+/// Rotation.
+struct RotationCheck: View {
+    let isOn: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label("In rotation", systemImage: isOn ? "checkmark.circle.fill" : "circle")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(isOn ? Color.accentColor : Color.secondary)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("Daily Rotation")
+        .accessibilityValue(isOn ? "Checked" : "Not checked")
     }
 }
 

@@ -5,7 +5,7 @@ import WidgetKit
 /// A complete look for the widget: palette, backdrop, cell shape and type.
 /// Picked per widget from Edit Widget, so two widgets can wear different
 /// styles side by side.
-enum WidgetStyle: String, CaseIterable, Identifiable, Sendable {
+enum WidgetStyle: String, CaseIterable, Codable, Identifiable, Sendable {
     case classic, aurora, ember, terminal, paper
     /// Designed in the app. See `CustomWidgetStyle` and `StyleLibrary`.
     case custom
@@ -64,6 +64,8 @@ enum WidgetLayout: String, CaseIterable, Identifiable, Sendable {
     case graph
     /// The streak number, big, with a smaller graph alongside.
     case streak
+    /// This week, Sunday to Saturday, in big squares with the day letters.
+    case week
 
     var id: String { rawValue }
 
@@ -71,6 +73,50 @@ enum WidgetLayout: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .graph: "Graph"
         case .streak: "Big streak"
+        case .week: "This week"
+        }
+    }
+}
+
+/// How much history a widget's graph covers, chosen per widget.
+enum WidgetRange: String, CaseIterable, Identifiable, Sendable {
+    /// Whatever the app's time range is set to, which is what every widget
+    /// showed before this was a choice.
+    case app
+    case month, threeMonths, sixMonths, year
+
+    var id: String { rawValue }
+
+    /// Nil means the app's setting.
+    var weeks: Int? {
+        switch self {
+        case .app: nil
+        case .month: 4
+        case .threeMonths: 13
+        case .sixMonths: 26
+        case .year: 52
+        }
+    }
+}
+
+/// The number a widget leads with.
+enum WidgetStat: String, CaseIterable, Identifiable, Sendable {
+    case streak
+    /// The longest run in the past year.
+    case best
+    /// Days pushed since Sunday.
+    case week
+    /// Contributions so far this year, as GitHub counts them.
+    case year
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .streak: "Current streak"
+        case .best: "Best streak"
+        case .week: "This week"
+        case .year: "This year"
         }
     }
 }
@@ -97,12 +143,24 @@ struct WidgetTheme {
     /// Draw empty days as a hollow outline instead of a filled square, for
     /// themes where a filled one would pass for a faint active day.
     var outlinesEmpty = false
+    /// How far apart the squares sit, as a multiple of the usual gap.
+    var spacing: CGFloat = 1
+    /// Leave out labels and captions: the number and the squares only.
+    var hidesText = false
+    /// The outline each day is drawn in; boxes use `cornerFraction`.
+    var form: CellForm = .box
+    var fontWidth: Font.Width = .standard
+    var numberWeight: Font.Weight = .bold
+    /// A freeze is marked in ice blue, so it reads apart from a rest day.
+    var freeze = Color(hex: 0x7DD3FC)
+    /// The day a streak ended on. Nil draws it like any other empty day.
+    var missed: Color? = nil
 
     func color(for level: Int) -> Color {
         levels[min(max(level, 0), levels.count - 1)]
     }
 
-    /// The outline and dot of a rest day or a freeze. It borrows a mid level,
+    /// The color of a rest day's mark. It borrows a mid level,
     /// so a day off sits in the same family as the days around it without
     /// being as loud as a day that was pushed.
     var dayOff: Color { color(for: 2) }
@@ -122,7 +180,15 @@ struct WidgetTheme {
             glows: false,
             fontDesign: fontDesign,
             isMonochrome: true,
-            ringsPending: true
+            ringsPending: true,
+            spacing: spacing,
+            hidesText: hidesText,
+            form: form,
+            fontWidth: fontWidth,
+            numberWeight: numberWeight,
+            // One tint is all there is here, so a freeze is told apart by
+            // nothing but its mark.
+            freeze: Color.white.opacity(0.62)
         )
     }
 }
@@ -151,7 +217,8 @@ extension WidgetStyle {
                 pending: .orange,
                 cornerFraction: 0.25,
                 glows: false,
-                fontDesign: .default
+                fontDesign: .default,
+                freeze: Color(hex: colorScheme == .dark ? 0x7DD3FC : 0x0284C7)
             )
         case .aurora:
             WidgetTheme(
@@ -211,7 +278,8 @@ extension WidgetStyle {
                 pending: Color(hex: 0xC2552D),
                 cornerFraction: 0.5,
                 glows: false,
-                fontDesign: .serif
+                fontDesign: .serif,
+                freeze: Color(hex: 0x0284C7)
             )
         case .custom:
             custom.theme

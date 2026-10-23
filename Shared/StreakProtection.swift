@@ -32,6 +32,10 @@ struct StreakProtection: Codable, Equatable, Sendable {
     var claims: [String: DayOff] = [:]
     /// Turning this off only stops new freezes. One already used still counts.
     var freezeEnabled = true
+    /// "yyyy-MM-dd" of the day this account was connected. Before then Pushed
+    /// wasn't watching, so no day earlier than this is ever called missed.
+    /// Nil marks no missed days at all.
+    var trackedSince: String? = nil
 
     /// Nothing chosen, nothing claimed and no freeze to use: the streak
     /// exactly as GitHub's own squares give it.
@@ -209,7 +213,7 @@ extension StreakProtection {
 
 extension StreakProtection {
     private enum CodingKeys: String, CodingKey {
-        case schedules, claims, freezeEnabled
+        case schedules, claims, freezeEnabled, trackedSince
     }
 
     /// A field that's missing or unreadable takes its default, so a value
@@ -219,5 +223,6 @@ extension StreakProtection {
         schedules = (try? container.decodeIfPresent([Schedule].self, forKey: .schedules)) ?? []
         claims = (try? container.decodeIfPresent([String: DayOff].self, forKey: .claims)) ?? [:]
         freezeEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .freezeEnabled)) ?? true
+        trackedSince = try? container.decodeIfPresent(String.self, forKey: .trackedSince)
     }
 }

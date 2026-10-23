@@ -73,6 +73,7 @@
 		B845E3C3C68F786DD83B0255 /* CustomWidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01686006985EB29F6E040356 /* CustomWidgetStyle.swift */; };
 		B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768B00CB100AB92E54E15EC8 /* ContributionGridView.swift */; };
 		BF53E5D80750D8E1BA4371D1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 621F674DC7CA93253B2F6E7F /* PrivacyInfo.xcprivacy */; };
+		C403A9CA3FC4B44A212078F4 /* AppConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB3DEFB8B77FC966431D7EC /* AppConfigTests.swift */; };
 		C47C858B7694044E8ABD2F94 /* StreakProtectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72366EB0030B9C0E3969A8C /* StreakProtectionTests.swift */; };
 		CBA690CAA5DB254EEF037863 /* StreakWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A892ECF7946F66A9FEC3B089 /* StreakWidgetView.swift */; };
 		CFE6B6CC29B6C174006D8D81 /* CustomWidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01686006985EB29F6E040356 /* CustomWidgetStyle.swift */; };
@@ -85,6 +86,7 @@
 		E7736AC7475D6AABEE08C67C /* StreakIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */; };
 		EC8DB1B82BD3FF7157E85726 /* StyleLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAA188378D027BFE3661B74C /* StyleLibrary.swift */; };
 		ED2C4761C5DDCF6E65DDD184 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
+		F0D91B2C24CB8A99A6BA808A /* TestScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40EF11801E5E12EE4E6BFAF6 /* TestScenarioTests.swift */; };
 		F733D5133C936D68331BCFDD /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFB708858C0AE4863B86A02 /* AppConfig.swift */; };
 		F79F449D798D153E08CF1780 /* DebugNotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C90674B989E8A692A52344 /* DebugNotificationsView.swift */; };
 		FCA547C48DCF6AD248BB4835 /* WidgetStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B783BED2905B46D710B79BE /* WidgetStyleTests.swift */; };
@@ -123,9 +125,11 @@
 		160810259FC8A024A879E04B /* WidgetOptionsIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetOptionsIntent.swift; sourceTree = "<group>"; };
 		224F538788DB4AC5BD80B558 /* StyleLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleLibraryTests.swift; sourceTree = "<group>"; };
 		254B089F95A319A42A70A8D2 /* LockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenWidget.swift; sourceTree = "<group>"; };
+		2EB3DEFB8B77FC966431D7EC /* AppConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfigTests.swift; sourceTree = "<group>"; };
 		32EF47F729BCDAC67059B748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		356EF749711302E46F9D9993 /* ContributionSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributionSnapshot.swift; sourceTree = "<group>"; };
 		3FAE6B55ECF230C2D6CADFFC /* StreakIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakIcon.swift; sourceTree = "<group>"; };
+		40EF11801E5E12EE4E6BFAF6 /* TestScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestScenarioTests.swift; sourceTree = "<group>"; };
 		458C3B2F8BFBF2E2EE9487A4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		494CC5CB24A472B8B7BAF655 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		518E378FDF8CFFC9069799E3 /* TestScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestScenario.swift; sourceTree = "<group>"; };
@@ -241,6 +245,7 @@
 		B4B5CB0CD0F4E33A093ED935 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				2EB3DEFB8B77FC966431D7EC /* AppConfigTests.swift */,
 				5EC5A1FC6ABF2843BC34E681 /* CustomWidgetStyleTests.swift */,
 				D7697D0024228D0E93A8933E /* NotificationPlannerTests.swift */,
 				BC610E5853187959D7F02A29 /* NotificationSchedulerTests.swift */,
@@ -249,6 +254,7 @@
 				AF5360FCFAA9469CAC0C10F4 /* StreakIconTests.swift */,
 				F72366EB0030B9C0E3969A8C /* StreakProtectionTests.swift */,
 				224F538788DB4AC5BD80B558 /* StyleLibraryTests.swift */,
+				40EF11801E5E12EE4E6BFAF6 /* TestScenarioTests.swift */,
 				8B783BED2905B46D710B79BE /* WidgetStyleTests.swift */,
 			);
 			path = Tests;
@@ -396,6 +402,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D1ED91D53094EABC48C92FD0 /* AppConfig.swift in Sources */,
+				C403A9CA3FC4B44A212078F4 /* AppConfigTests.swift in Sources */,
 				21AB916F836420F91F6D774C /* BuildEnvironment.swift in Sources */,
 				B8EBFE2A12615702DF38ED3E /* ContributionGridView.swift in Sources */,
 				5AC69282B81DE682D3DE5EDB /* ContributionSnapshot.swift in Sources */,
@@ -421,6 +428,7 @@
 				09D2FCF6CC7BC3C121886642 /* StyleLibrary.swift in Sources */,
 				35A400A893433D8C3CA54C0D /* StyleLibraryTests.swift in Sources */,
 				9F1EB77B28E63CF31CC27FA0 /* TestScenario.swift in Sources */,
+				F0D91B2C24CB8A99A6BA808A /* TestScenarioTests.swift in Sources */,
 				83810D573382F4E263B39438 /* WidgetStyle.swift in Sources */,
 				FCA547C48DCF6AD248BB4835 /* WidgetStyleTests.swift in Sources */,
 			);
@@ -570,7 +578,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 13;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -664,7 +672,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 13;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = KJ39PZWS6C;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

@@ -7,6 +7,10 @@ struct StreakEntry: TimelineEntry {
     /// picked in Edit Widget have been turned into the real thing by now.
     let style: WidgetStyle
     let layout: WidgetLayout
+    /// How many weeks of graph, already settled between this widget's Range
+    /// and the app's time range.
+    let weeks: Int
+    let stat: WidgetStat
     /// Read when the entry is made, so editing a saved style in the app and
     /// reloading timelines is all it takes to repaint the widgets wearing it.
     let custom: CustomWidgetStyle
@@ -18,6 +22,8 @@ struct StreakEntry: TimelineEntry {
         snapshot: ContributionSnapshot?,
         style: WidgetStyle = .classic,
         layout: WidgetLayout = .graph,
+        weeks: Int = AppConfig.widgetWeeks,
+        stat: WidgetStat = .streak,
         custom: CustomWidgetStyle = .default,
         protection: StreakProtection = AppConfig.streakProtection
     ) {
@@ -25,6 +31,8 @@ struct StreakEntry: TimelineEntry {
         self.snapshot = snapshot
         self.style = style
         self.layout = layout
+        self.weeks = weeks
+        self.stat = stat
         self.custom = custom
         self.protection = protection
     }
@@ -42,6 +50,8 @@ struct StreakEntry: TimelineEntry {
             snapshot: snapshot,
             style: look.style,
             layout: configuration.layout,
+            weeks: configuration.range.weeks ?? AppConfig.widgetWeeks,
+            stat: configuration.stat,
             custom: look.custom
         )
     }
@@ -85,6 +95,8 @@ struct WidgetRefresh {
     let policy: TimelineReloadPolicy
 
     static func run(now: Date) async -> WidgetRefresh {
+        TestScenario.expireIfNeeded(now: now)
+
         #if DEBUG
         if DemoMode.isActive {
             return WidgetRefresh(snapshot: ContributionSnapshot.load(), entryDates: entryDates(from: now), policy: .never)

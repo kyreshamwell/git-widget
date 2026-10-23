@@ -12,6 +12,8 @@ struct PushedWidgetEntryView: View {
             family: family,
             style: entry.style,
             layout: entry.layout,
+            weeks: entry.weeks,
+            stat: entry.stat,
             custom: entry.custom,
             protection: entry.protection,
             now: entry.date,

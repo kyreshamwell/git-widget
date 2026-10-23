@@ -87,6 +87,8 @@ struct ContributionGridView: View {
     }
 
     var body: some View {
+        // Minimal styles drop the labels along with every other word.
+        let showsLabels = self.showsLabels && !theme.hidesText
         GeometryReader { geo in
             let columns = weeks.count
             let labelFont: CGFloat = 9
@@ -98,7 +100,7 @@ struct ContributionGridView: View {
 
             // Gutter scales with density so dense views (52 weeks) don't lose
             // a third of their width to fixed 2pt gaps.
-            let spacing = max(0.8, min(2.5, availW / CGFloat(max(columns, 1)) * 0.18))
+            let spacing = max(0.8, min(2.5, availW / CGFloat(max(columns, 1)) * 0.18)) * theme.spacing
             let rawW = (availW - spacing * CGFloat(max(columns - 1, 0))) / CGFloat(max(columns, 1))
             let rawH = (availH - spacing * 6) / 7
             // True squares, like GitHub — sized by whichever dimension is tighter.
@@ -163,23 +165,28 @@ struct ContributionGridView: View {
 }
 
 /// One day's square, drawn the way its theme draws that kind of day: filled
-/// by how busy it was, hollow where the theme outlines empty days, and hollow
-/// with a dot for a rest day or a freeze.
+/// by how busy it was, hollow where the theme outlines empty days, and marked
+/// for a rest day or a freeze in whichever way days off are set to look.
 struct DayCell: View {
+    @Environment(\.dayOffMark) private var mark
     let day: StreakDay
     let theme: WidgetTheme
     /// Halo size for the busiest days, in themes that glow. Zero for none.
     var glowRadius: CGFloat = 0
 
     var body: some View {
-        if day.off != nil {
-            CellOutline(cornerFraction: theme.cornerFraction, dotted: true)
-                .fill(theme.dayOff, style: FillStyle(eoFill: true))
+        if let off = day.off {
+            dayOff(off == .freeze ? theme.freeze : theme.dayOff)
+        } else if day.endedStreak, let missed = theme.missed {
+            // Outlined rather than filled, so a red miss can't be mistaken for
+            // a busy day in a warm palette.
+            emptyCell.overlay {
+                CellOutline(theme, thickness: 0.17).fill(missed, style: FillStyle(eoFill: true))
+            }
         } else if day.level == 0 && theme.outlinesEmpty {
-            CellOutline(cornerFraction: theme.cornerFraction)
-                .fill(theme.color(for: 0), style: FillStyle(eoFill: true))
+            emptyCell
         } else {
-            CellShape(cornerFraction: theme.cornerFraction)
+            CellShape(theme)
                 .fill(theme.color(for: day.level))
                 .glow(
                     theme.glows && day.level >= 3 && glowRadius > 0 ? theme.color(for: day.level) : nil,
@@ -187,6 +194,74 @@ struct DayCell: View {
                 )
         }
     }
+
+    @ViewBuilder
+    private var emptyCell: some View {
+        if theme.outlinesEmpty {
+            CellOutline(theme)
+                .fill(theme.color(for: 0), style: FillStyle(eoFill: true))
+        } else {
+            CellShape(theme).fill(theme.color(for: 0))
+        }
+    }
+
+    @ViewBuilder
+    private func dayOff(_ color: Color) -> some View {
+        switch mark {
+        case .ring:
+            CellOutline(theme, dotted: true)
+                .fill(color, style: FillStyle(eoFill: true))
+        case .dot:
+            // An ordinary empty day with a dot in it: the quietest of the three.
+            emptyCell.overlay {
+                CenterDot(fraction: 0.44).fill(color)
+            }
+        case .stripes:
+            CellShape(theme)
+                .fill(color.opacity(0.22))
+                .overlay {
+                    Stripes().fill(color).clipShape(CellShape(theme))
+                }
+        }
+    }
+}
+
+/// How a rest day or a freeze is marked on the graph. Set once in the app and
+/// used by every widget.
+enum DayOffMark: String, CaseIterable, Codable, Identifiable, Sendable {
+    /// The cell's outline with a dot in the middle.
+    case ring
+    /// An empty day with a dot in it.
+    case dot
+    /// Diagonal stripes, like a paused bar.
+    case stripes
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .ring: "Ring"
+        case .dot: "Dot"
+        case .stripes: "Stripes"
+        }
+    }
+}
+
+private struct DayOffMarkKey: EnvironmentKey {
+    static let defaultValue = DayOffMark.stripes
+}
+
+extension EnvironmentValues {
+    var dayOffMark: DayOffMark {
+        get { self[DayOffMarkKey.self] }
+        set { self[DayOffMarkKey.self] = newValue }
+    }
+}
+
+/// The outline a day is drawn in. Most styles are a square with its corners
+/// rounded by some amount; custom styles can pick one of the others.
+enum CellForm: String, Sendable {
+    case box, diamond, hexagon, heart, star
 }
 
 /// A cell's outline, optionally with a dot in the middle. Everything is sized
@@ -195,21 +270,60 @@ struct DayCell: View {
 /// inner edge cuts the hole, and the dot fills back in.
 struct CellOutline: Shape {
     var cornerFraction: CGFloat
+    var form: CellForm = .box
     var dotted = false
+    /// Line width as a share of the cell.
+    var thickness: CGFloat = 0.11
+
+    init(cornerFraction: CGFloat, form: CellForm = .box, dotted: Bool = false, thickness: CGFloat = 0.11) {
+        self.cornerFraction = cornerFraction
+        self.form = form
+        self.dotted = dotted
+        self.thickness = thickness
+    }
+
+    init(_ theme: WidgetTheme, dotted: Bool = false, thickness: CGFloat = 0.11) {
+        self.init(cornerFraction: theme.cornerFraction, form: theme.form, dotted: dotted, thickness: thickness)
+    }
 
     func path(in rect: CGRect) -> Path {
         let side = min(rect.width, rect.height)
-        let line = max(side * 0.11, 0.6)
-        let radius = side * cornerFraction
-        let hole = rect.insetBy(dx: line, dy: line)
+        let line = max(side * thickness, 0.6)
 
-        var path = Path(roundedRect: rect, cornerRadius: radius)
-        path.addPath(Path(roundedRect: hole, cornerRadius: max(radius - line, 0)))
+        var path = CellShape.path(form, cornerFraction: cornerFraction, in: rect)
+        path.addPath(CellShape.path(form, cornerFraction: cornerFraction, in: rect.insetBy(dx: line, dy: line)))
         if dotted {
-            let dot = side * 0.28
-            path.addEllipse(in: CGRect(
-                x: rect.midX - dot / 2, y: rect.midY - dot / 2, width: dot, height: dot
-            ))
+            path.addPath(CenterDot(fraction: 0.28).path(in: rect))
+        }
+        return path
+    }
+}
+
+/// A round dot in the middle of the cell, sized as a share of it.
+struct CenterDot: Shape {
+    var fraction: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let dot = min(rect.width, rect.height) * fraction
+        return Path(ellipseIn: CGRect(x: rect.midX - dot / 2, y: rect.midY - dot / 2, width: dot, height: dot))
+    }
+}
+
+/// Diagonal bands across the cell, spaced in proportion to it.
+struct Stripes: Shape {
+    func path(in rect: CGRect) -> Path {
+        let side = min(rect.width, rect.height)
+        let band = side * 0.15
+        let step = side * 0.36
+        var path = Path()
+        var offset = -rect.height
+        while offset < rect.width {
+            path.move(to: CGPoint(x: rect.minX + offset, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.minX + offset + band, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.minX + offset + band + rect.height, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.minX + offset + rect.height, y: rect.minY))
+            path.closeSubpath()
+            offset += step
         }
         return path
     }
@@ -219,16 +333,68 @@ struct CellOutline: Shape {
 /// reads the same at a year's worth of tiny squares or a week of big ones.
 struct CellShape: InsettableShape {
     var cornerFraction: CGFloat
+    var form: CellForm = .box
     var insetAmount: CGFloat = 0
 
+    init(cornerFraction: CGFloat, form: CellForm = .box) {
+        self.cornerFraction = cornerFraction
+        self.form = form
+    }
+
+    init(_ theme: WidgetTheme) {
+        self.init(cornerFraction: theme.cornerFraction, form: theme.form)
+    }
+
     func path(in rect: CGRect) -> Path {
-        let inset = rect.insetBy(dx: insetAmount, dy: insetAmount)
-        return Path(roundedRect: inset, cornerRadius: min(inset.width, inset.height) * cornerFraction)
+        Self.path(form, cornerFraction: cornerFraction, in: rect.insetBy(dx: insetAmount, dy: insetAmount))
     }
 
     func inset(by amount: CGFloat) -> CellShape {
         var shape = self
         shape.insetAmount += amount
         return shape
+    }
+
+    static func path(_ form: CellForm, cornerFraction: CGFloat, in rect: CGRect) -> Path {
+        let side = min(rect.width, rect.height)
+        let box = CGRect(x: rect.midX - side / 2, y: rect.midY - side / 2, width: side, height: side)
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: box.minX + box.width * x, y: box.minY + box.height * y)
+        }
+        func polygon(_ points: [CGPoint]) -> Path {
+            var path = Path()
+            path.addLines(points)
+            path.closeSubpath()
+            return path
+        }
+
+        switch form {
+        case .box:
+            return Path(roundedRect: rect, cornerRadius: side * cornerFraction)
+        case .diamond:
+            return polygon([point(0.5, 0), point(1, 0.5), point(0.5, 1), point(0, 0.5)])
+        case .hexagon:
+            return polygon([
+                point(0.5, 0), point(0.95, 0.25), point(0.95, 0.75),
+                point(0.5, 1), point(0.05, 0.75), point(0.05, 0.25),
+            ])
+        case .heart:
+            var path = Path()
+            path.move(to: point(0.5, 0.95))
+            path.addCurve(to: point(0, 0.36), control1: point(0.14, 0.74), control2: point(0, 0.56))
+            path.addCurve(to: point(0.5, 0.2), control1: point(0, 0.06), control2: point(0.4, 0.0))
+            path.addCurve(to: point(1, 0.36), control1: point(0.6, 0.0), control2: point(1, 0.06))
+            path.addCurve(to: point(0.5, 0.95), control1: point(1, 0.56), control2: point(0.86, 0.74))
+            path.closeSubpath()
+            return path
+        case .star:
+            // Chunky points, so it still reads as a star at a few points across.
+            let points = (0..<10).map { index -> CGPoint in
+                let angle = (Double(index) * 36 - 90) * .pi / 180
+                let radius = index.isMultiple(of: 2) ? 0.5 : 0.24
+                return point(0.5 + radius * cos(angle), 0.54 + radius * sin(angle))
+            }
+            return polygon(points)
+        }
     }
 }

@@ -136,6 +136,21 @@ final class WidgetStyleTests: XCTestCase {
         XCTAssertLessThan(steps.max()! - steps.min()!, 0.03, "steps of \(steps)")
     }
 
+    // MARK: - Per-widget choices
+
+    func testRangeEitherFollowsTheAppOrSetsItsOwnWeeks() {
+        XCTAssertNil(WidgetRange.app.weeks)
+        XCTAssertEqual(WidgetRange.allCases.compactMap(\.weeks), [4, 13, 26, 52], "the same ranges the app offers")
+    }
+
+    func testBuiltInStylesKeepTheUsualSpacingAndWords() {
+        for style in WidgetStyle.builtIn {
+            let theme = style.theme(for: .dark)
+            XCTAssertEqual(theme.spacing, 1)
+            XCTAssertFalse(theme.hidesText)
+        }
+    }
+
     // MARK: - Sample data
 
     func testSampleSnapshotHasTheShapeOfARealOne() {

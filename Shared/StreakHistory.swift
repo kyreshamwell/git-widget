@@ -4,6 +4,9 @@ import Foundation
 struct StreakDay: Equatable, Sendable {
     var level: Int
     var off: DayOff? = nil
+    /// The empty day a streak ended on. Styles can outline it in a color of
+    /// its own, so every break stands out on the graph.
+    var endedStreak = false
 
     var isActive: Bool { level > 0 }
 }
@@ -51,10 +54,42 @@ struct StreakHistory {
         // before the last entry.
         let end = missing >= 0 ? today : snapshotEnd
         let off = protection.daysOff(levels: levels, endingOn: end, calendar: calendar)
+        let todayPosition = levels.count - 1 + min(missing, 0)
 
-        days = zip(levels, off).map { StreakDay(level: $0, off: $1) }
+        // Missed days are only called out from the day Pushed started
+        // watching. A gap from before then wasn't a miss it could warn about.
+        let trackedFrom = protection.trackedSince
+            .flatMap { ContributionCalendar.dateFormatter.date(from: $0) }
+            .flatMap { calendar.dateComponents([.day], from: calendar.startOfDay(for: $0), to: end).day }
+            .map { levels.count - 1 - $0 }
+
+        var built = zip(levels, off).map { StreakDay(level: $0, off: $1) }
+        if let trackedFrom {
+            Self.markStreakEnds(&built, from: trackedFrom, before: todayPosition)
+        }
+        days = built
         endDate = end
-        todayIndex = levels.count - 1 + min(missing, 0)
+        todayIndex = todayPosition
+    }
+
+    /// Pushed days in a row before a gap counts as a streak ending. One day
+    /// on its own isn't a streak, so a lone push and a quiet day aren't flagged.
+    static let shortestStreak = 2
+
+    /// Flags the first missed day after each run of `shortestStreak` or more
+    /// pushed days, from `first` on. A run that began before then still
+    /// counts toward its length. Days off carry a run along without adding to
+    /// it, and today is never flagged: it isn't over.
+    private static func markStreakEnds(_ days: inout [StreakDay], from first: Int, before today: Int) {
+        var run = 0
+        for index in days.indices where index < today {
+            if days[index].isActive {
+                run += 1
+            } else if days[index].off == nil {
+                days[index].endedStreak = index >= first && run >= shortestStreak
+                run = 0
+            }
+        }
     }
 }
 
@@ -122,6 +157,50 @@ extension StreakHistory {
             index -= 1
         }
         return count
+    }
+}
+
+// MARK: - Other numbers
+
+extension StreakHistory {
+    /// The longest run in the retained window, counted the same way as the
+    /// current streak: pushed days, stepping over days off. Today being
+    /// unfinished never ends a run.
+    var bestStreak: Int {
+        let last = todayIndex.map { min($0, days.count - 1) } ?? days.count - 1
+        guard last >= 0 else { return 0 }
+        var best = 0
+        var run = 0
+        for index in 0...last {
+            let day = days[index]
+            if day.isActive {
+                run += 1
+            } else if day.off == nil && index != todayIndex {
+                run = 0
+            }
+            best = max(best, run)
+        }
+        return best
+    }
+
+    /// This week, Sunday through Saturday: the days so far, and nil for the
+    /// ones still to come.
+    var thisWeek: (days: [StreakDay?], todayIndex: Int) {
+        guard let today = date(daysAgo: 0) else {
+            return (Array(repeating: nil, count: 7), 0)
+        }
+        let todayIndex = calendar.component(.weekday, from: today) - 1
+        let week = (0..<7).map { position -> StreakDay? in
+            let daysAgo = todayIndex - position
+            guard daysAgo >= 0 else { return nil }
+            return day(daysAgo: daysAgo) ?? StreakDay(level: 0)
+        }
+        return (week, todayIndex)
+    }
+
+    /// Days pushed since Sunday.
+    var pushedThisWeek: Int {
+        thisWeek.days.compactMap { $0 }.filter(\.isActive).count
     }
 }
 

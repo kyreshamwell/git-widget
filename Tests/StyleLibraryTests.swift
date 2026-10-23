@@ -11,7 +11,7 @@ final class StyleLibraryTests: XCTestCase {
         return style
     }
 
-    /// Three saved styles: Coral, Mint and Sky, none favorited.
+    /// Three saved styles: Coral, Mint and Sky, none checked.
     private var three: StyleLibrary {
         var library = StyleLibrary.starting(with: design(0xFF7A59))
         library.styles[0].name = "Coral"
@@ -136,20 +136,45 @@ final class StyleLibraryTests: XCTestCase {
         XCTAssertEqual(library.rotationPick(on: morning), library.rotationPick(on: night))
     }
 
-    func testOnlyFavoritesTakeTurnsOnceAnyAreMarked() {
+    func testOnlyCheckedStylesTakeTurnsOnceAnyAre() {
         var library = three
-        library.styles[0].isFavorite = true
-        library.styles[2].isFavorite = true
+        library.styles[0].inRotation = true
+        library.styles[2].inRotation = true
 
         XCTAssertEqual(library.rotation.map(\.name), ["Coral", "Sky"])
+        XCTAssertTrue(library.hasCheckedStyles)
     }
 
-    func testBuiltInStylesCanJoinTheRotation() {
-        var library = three
-        library.rotatesBuiltIns = true
+    func testWithNothingCheckedAllOfYourStylesTakeTurns() {
+        XCTAssertEqual(three.rotation.map(\.name), ["Coral", "Mint", "Sky"])
+        XCTAssertFalse(three.hasCheckedStyles)
+    }
 
-        XCTAssertEqual(library.rotation.count, 3 + WidgetStyle.builtIn.count)
-        XCTAssertEqual(library.rotation.last?.style, .paper)
+    func testOneCheckedStyleStaysPut() {
+        var library = three
+        library.toggleRotation(library.styles[1].id)
+        let week = (12...18).map { library.rotationPick(on: date(String(format: "2026-10-%02d", $0))).name }
+        XCTAssertEqual(Set(week), ["Mint"])
+    }
+
+    func testBuiltInStylesCanBeCheckedOneByOne() {
+        var library = three
+        library.toggleRotation(.paper)
+        library.toggleRotation(.terminal)
+
+        XCTAssertEqual(library.rotation.map(\.style), [.terminal, .paper], "in the gallery's order")
+        XCTAssertTrue(library.isInRotation(.paper))
+
+        library.toggleRotation(.paper)
+        XCTAssertFalse(library.isInRotation(.paper))
+        XCTAssertEqual(library.rotation.map(\.style), [.terminal])
+    }
+
+    func testOnlyRealBuiltInStylesCanBeChecked() {
+        var library = three
+        library.toggleRotation(.custom)
+        library.toggleRotation(.rotation)
+        XCTAssertTrue(library.rotatingBuiltIns.isEmpty)
     }
 
     func testAWidgetSetToRotationWearsThatDaysPick() {
@@ -163,8 +188,8 @@ final class StyleLibraryTests: XCTestCase {
 
     func testTheLibrarySurvivesSaving() throws {
         var library = three
-        library.styles[1].isFavorite = true
-        library.rotatesBuiltIns = true
+        library.styles[1].inRotation = true
+        library.rotatingBuiltIns = [.ember]
 
         let decoded = try JSONDecoder().decode(StyleLibrary.self, from: JSONEncoder().encode(library))
         XCTAssertEqual(decoded, library)
@@ -176,7 +201,7 @@ final class StyleLibraryTests: XCTestCase {
 
         XCTAssertEqual(decoded.id, StyleLibrary.firstStyleID)
         XCTAssertEqual(decoded.style.squares, RGBAColor(red: 1, green: 0, blue: 0))
-        XCTAssertFalse(decoded.isFavorite)
+        XCTAssertFalse(decoded.inRotation)
         XCTAssertEqual(decoded.displayName, "Untitled")
     }
 }

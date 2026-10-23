@@ -382,6 +382,147 @@ final class StreakProtectionTests: XCTestCase {
         XCTAssertEqual(protection.chosenWeekdays.count, StreakProtection.maxRestDays)
     }
 
+    // MARK: - Other numbers
+
+    func testTheBestStreakIsTheLongestRunInTheWindow() {
+        // Seven, a gap, then three so far.
+        let snap = snapshot(endingOn: "2026-10-17", "####### ..####")
+        XCTAssertEqual(snap.history(asOf: date("2026-10-17")).bestStreak, 7)
+    }
+
+    func testTheBestStreakStepsOverDaysOffToo() {
+        // Two weeks of weekdays with the weekends off is one run of ten.
+        let snap = snapshot(endingOn: "2026-10-17", ".#####. .#####.")
+        XCTAssertEqual(snap.history(protection: resting(sunday, saturday), asOf: date("2026-10-17")).bestStreak, 10)
+        XCTAssertEqual(snap.history(asOf: date("2026-10-17")).bestStreak, 5)
+    }
+
+    func testTheCurrentRunCountsTowardTheBestBeforeTodayIsPushed() {
+        let snap = snapshot(endingOn: "2026-10-15", "...#########.")
+        XCTAssertEqual(snap.history(asOf: date("2026-10-15")).bestStreak, 9)
+    }
+
+    func testThisWeekRunsSundayToSaturdayWithTheRestStillToCome() {
+        // Wednesday the 14th: Sunday empty, Monday to Wednesday pushed.
+        let snap = snapshot(endingOn: "2026-10-14", ".#####. .###")
+        let week = snap.history(asOf: date("2026-10-14")).thisWeek
+
+        XCTAssertEqual(week.todayIndex, 3)
+        XCTAssertEqual(week.days.map { $0?.isActive }, [false, true, true, true, nil, nil, nil])
+        XCTAssertEqual(snap.history(asOf: date("2026-10-14")).pushedThisWeek, 3)
+    }
+
+    func testUndoingAClaimPutsTheDayBack() {
+        let snap = snapshot(endingOn: "2026-10-15", ".#####. .##..")
+        var protection = resting(sunday, saturday)
+        protection.claim(.freeze, on: date("2026-10-14"))
+        XCTAssertEqual(snap.history(protection: protection, asOf: date("2026-10-15")).streak, 7)
+
+        protection.removeClaim(on: date("2026-10-14"))
+        let after = snap.history(protection: protection, asOf: date("2026-10-15"))
+        XCTAssertEqual(after.streak, 0)
+        XCTAssertTrue(after.canClaim(.freeze, daysAgo: 1), "the freeze is unspent again")
+    }
+
+    // MARK: - Data that isn't there
+
+    func testASnapshotWithNoDatesShowsNothingRatherThanCrashing() {
+        let empty = ContributionSnapshot(totalContributions: 0, recentLevels: [], lastDate: "", fetchedAt: Date())
+        let history = empty.history(protection: resting(sunday, saturday, claims: ["2026-10-14": .rest]))
+
+        XCTAssertEqual(history.streak, 0)
+        XCTAssertEqual(history.bestStreak, 0)
+        XCTAssertNil(history.gap)
+        XCTAssertEqual(history.today, .pending)
+        XCTAssertFalse(history.canClaim(.rest, daysAgo: 0))
+        XCTAssertFalse(history.canSaveStreak)
+        XCTAssertEqual(history.restDaysLeftThisWeek, 0)
+        XCTAssertNil(history.freezeUsedThisMonth)
+        XCTAssertEqual(history.thisWeek.days.count, 7)
+        XCTAssertTrue(history.days(forWeeks: 4).isEmpty)
+        XCTAssertEqual(history.days(last: 7).count, 7)
+    }
+
+    func testAnUnreadableDateLeavesLevelsButClaimsNothing() {
+        let odd = ContributionSnapshot(totalContributions: 3, recentLevels: [1, 2, 0], lastDate: "not a date", fetchedAt: Date())
+        let history = odd.history(protection: resting(sunday, saturday))
+
+        XCTAssertEqual(history.days.map(\.level), [1, 2, 0])
+        XCTAssertEqual(history.streak, 0)
+        XCTAssertFalse(history.canClaim(.freeze, daysAgo: 0))
+    }
+
+    func testClaimsWithUnreadableDatesAreIgnored() {
+        let snap = snapshot(endingOn: "2026-10-15", ".#####. .##..")
+        let protection = StreakProtection(
+            schedules: [.init(from: "garbage", weekdays: [1, 7])],
+            claims: ["yesterday": .freeze, "2026-13-45": .rest]
+        )
+        let history = snap.history(protection: protection, asOf: date("2026-10-15"))
+        XCTAssertEqual(history.streak, 0, "nothing usable, so nothing protected")
+    }
+
+    func testWeekdaysOutsideOneToSevenAreDropped() {
+        var protection = StreakProtection()
+        protection.setWeekdays([0, 8, -1, 7], asOf: date("2026-10-15"))
+        XCTAssertEqual(protection.chosenWeekdays, [7])
+    }
+
+    // MARK: - Missed days
+
+    /// Which days are flagged as the day a streak ended, as positions.
+    private func ended(_ history: StreakHistory) -> [Int] {
+        history.days.indices.filter { history.days[$0].endedStreak }
+    }
+
+    private func tracked(since day: String = "2026-01-01") -> StreakProtection {
+        StreakProtection(trackedSince: day)
+    }
+
+    func testOnlyTheDayAStreakEndedIsMissed() {
+        // Five pushed, two quiet, two pushed, one quiet, pushed today.
+        let snap = snapshot(endingOn: "2026-10-17", "#####..##.#")
+        let history = snap.history(protection: tracked(), asOf: date("2026-10-17"))
+        XCTAssertEqual(ended(history), [5, 9], "the second quiet day is just quiet")
+    }
+
+    func testALonePushIsNotAStreakToEnd() {
+        let snap = snapshot(endingOn: "2026-10-17", ".#.##.#")
+        XCTAssertEqual(ended(snap.history(protection: tracked(), asOf: date("2026-10-17"))), [5])
+    }
+
+    func testTodayIsNeverMissedBecauseItIsNotOver() {
+        let snap = snapshot(endingOn: "2026-10-17", "#####.")
+        XCTAssertEqual(ended(snap.history(protection: tracked(), asOf: date("2026-10-17"))), [])
+    }
+
+    func testDaysOffAreNeverMissedAndCarryTheRunAcross() {
+        // Weekends off. The run carries over Saturday and Sunday and ends on Monday the 12th.
+        var protection = resting(sunday, saturday)
+        protection.trackedSince = "2026-01-01"
+        let snap = snapshot(endingOn: "2026-10-13", ".#####. ..#")
+        XCTAssertEqual(ended(snap.history(protection: protection, asOf: date("2026-10-13"))), [8])
+    }
+
+    func testNothingBeforePushedStartedWatchingIsMissed() {
+        // Connected on Wednesday the 14th: the break on the 10th came before that.
+        let snap = snapshot(endingOn: "2026-10-17", "#####..##.#")
+        let history = snap.history(protection: tracked(since: "2026-10-14"), asOf: date("2026-10-17"))
+        XCTAssertEqual(ended(history), [9])
+    }
+
+    func testARunThatStartedBeforeWatchingStillCounts() {
+        // Pushed from the 7th, connected on the 10th, missed the 12th.
+        let snap = snapshot(endingOn: "2026-10-13", "#####.#")
+        let history = snap.history(protection: tracked(since: "2026-10-10"), asOf: date("2026-10-13"))
+        XCTAssertEqual(ended(history), [5])
+    }
+
+    func testWithNoStartDateNothingIsMissed() {
+        let snap = snapshot(endingOn: "2026-10-17", "#####..##.#")
+        XCTAssertEqual(ended(snap.history(asOf: date("2026-10-17"))), [])
+    }
+
     // MARK: - What gets drawn
 
     func testTheGraphStillStartsOnASundayOncePaddedToToday() {

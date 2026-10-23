@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var library = AppConfig.styleLibrary
     @State private var protection = AppConfig.streakProtection
     @State private var testScenario = TestScenario.current
+    @State private var dayOffMark = AppConfig.dayOffMark
     @State private var status: Status = .idle
     @State private var notifications: NotificationSettings = AppConfig.notificationSettings
     @State private var permissionDenied = false
@@ -49,8 +50,14 @@ struct ContentView: View {
             if isConnected {
                 Form {
                     if testScenario != .off {
-                        Label("Showing test data: \(testScenario.name)", systemImage: "testtube.2")
-                            .foregroundStyle(.orange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Label("Showing test data: \(testScenario.name)", systemImage: "testtube.2")
+                            if let ends = TestScenario.endsAt() {
+                                Text("Switches off on its own \(ends.formatted(.dateTime.weekday(.wide).hour().minute())).")
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundStyle(.orange)
                     }
                     if let snapshot = shownSnapshot {
                         // One reading for the whole screen, the same one the
@@ -72,8 +79,12 @@ struct ContentView: View {
                 }
                 .navigationTitle("Pushed")
                 .refreshable { await refresh() }
-                // Picks up styles saved or changed on the way back.
-                .onAppear { library = AppConfig.styleLibrary }
+                .environment(\.dayOffMark, dayOffMark)
+                // Picks up styles and marks changed on the way back.
+                .onAppear {
+                    library = AppConfig.styleLibrary
+                    dayOffMark = AppConfig.dayOffMark
+                }
                 .task { await refreshPermissionState() }
             } else {
                 setupView
@@ -87,6 +98,12 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             Task { await refreshPermissionState() }
+            // A test may have switched itself off while the app was away.
+            TestScenario.expireIfNeeded()
+            if testScenario != TestScenario.current {
+                testScenario = TestScenario.current
+                protection = AppConfig.streakProtection
+            }
         }
     }
 
@@ -225,7 +242,7 @@ struct ContentView: View {
 
                 Color shows how active that day was relative to your own history: grey means no contributions, and the four greens are GitHub's intensity buckets (more contributions = darker). A "contribution" is a commit pushed to a default branch, an opened PR or issue, or a code review.
 
-                An outlined square with a dot is a day off: a rest day or a freeze. The streak steps over it without counting it.
+                A marked square is a day off: a rest day, or a freeze in ice blue. The streak steps over it without counting it. Choose how they're marked under Rest Days.
                 """)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -269,6 +286,7 @@ struct ContentView: View {
     /// today's reminders should say under identifiers that are already
     /// queued, so the day slots are dropped and planned again.
     private func apply(_ updated: StreakProtection) {
+        let updated = testScenario == .off ? updated : TestScenario.normalized(updated)
         protection = updated
         AppConfig.streakProtection = updated
         WidgetCenter.shared.reloadAllTimelines()
@@ -297,16 +315,32 @@ struct ContentView: View {
                     Text(scenario.name).tag(scenario)
                 }
             }
+            if testScenario != .off {
+                Button("Start Test Over") {
+                    TestScenario.startOver()
+                    refreshAfterTestChange()
+                }
+            }
         } header: {
             Text("Testing")
         } footer: {
-            Text("Shows a sample 12-day streak in the app, the widgets and the reminders. \"Waiting on today\" lets you take today off. \"Missed yesterday\" lets you save the streak. Rest days, freezes and milestones you use while testing are put back when you switch this off. Only in TestFlight and Xcode builds.")
+            Text("""
+            Shows a pretend streak in the app, the widgets and the reminders, with your rest weekdays as days off.
+
+            To try the freeze: pick Missed yesterday, then under Days off use the freeze for yesterday. The streak comes back and yesterday's square gets the day-off mark. Start Test Over gives the freeze back so you can try again. Waiting on today does the same for taking today off. If yesterday was one of your rest days it's already covered, so untick that day to see a real miss.
+
+            While testing, rest day changes apply straight away and reach back over past weeks. Everything goes back to how it was when you switch this off, or on its own after 2 days. Only in TestFlight and Xcode builds, never in the App Store version.
+            """)
         }
     }
 
     private func setTestScenario(_ scenario: TestScenario) {
         TestScenario.switchTo(scenario)
         testScenario = scenario
+        refreshAfterTestChange()
+    }
+
+    private func refreshAfterTestChange() {
         protection = AppConfig.streakProtection
         WidgetCenter.shared.reloadAllTimelines()
         Task {
@@ -366,7 +400,7 @@ struct ContentView: View {
         } header: {
             Text("Widget")
         } footer: {
-            Text("Time range applies to this graph and the home-screen widget. Fewer weeks = bigger squares. To restyle a widget, long-press it on your home screen and tap Edit Widget.")
+            Text("Time range applies to this graph and to any widget whose Range is Same as app. Fewer weeks means bigger squares. To give a widget its own range, layout, style or number, long-press it on your home screen and tap Edit Widget.")
         }
     }
 
@@ -580,7 +614,7 @@ struct ContentView: View {
         AppConfig.sharedDefaults.removeObject(forKey: AppConfig.usernameDefaultsKey)
         AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)
         AppConfig.resetNotificationState()
-        AppConfig.forgetClaimedDays()
+        AppConfig.forgetAccountHistory()
         protection = AppConfig.streakProtection
         username = ""
         token = ""
@@ -605,7 +639,7 @@ struct ContentView: View {
         let switchedAccount = previous.map { $0.lowercased() != username.lowercased() } ?? false
         if switchedAccount {
             AppConfig.resetNotificationState()
-            AppConfig.forgetClaimedDays()
+            AppConfig.forgetAccountHistory()
             await MainActor.run { protection = AppConfig.streakProtection }
             AppConfig.sharedDefaults.removeObject(forKey: ContributionSnapshot.defaultsKey)
             await NotificationScheduler(center: SystemNotificationCenter()).removeAllManaged()
@@ -646,6 +680,10 @@ struct ContentView: View {
                 AppConfig.lastCelebratedStreak = NotificationPlanner.milestoneBaseline(
                     for: newSnapshot, protection: AppConfig.streakProtection, asOf: Date()
                 )
+                // Gaps from before today weren't misses Pushed could have
+                // warned about, so they're never marked as missed.
+                AppConfig.startTracking()
+                await MainActor.run { protection = AppConfig.streakProtection }
             }
 
             await NotificationCoordinator.reconcile(snapshot: newSnapshot)

@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 /// The main screen's days off: saving yesterday while that's still possible,
 /// taking today off, and the way in to choosing rest days.
@@ -134,6 +135,7 @@ struct DaysOffSection: View {
 struct RestDaysView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var protection: StreakProtection
+    @State private var mark = AppConfig.dayOffMark
     private let apply: (StreakProtection) -> Void
 
     init(protection: StreakProtection, apply: @escaping (StreakProtection) -> Void) {
@@ -174,8 +176,15 @@ struct RestDaysView: View {
             }
 
             Section {
+                Picker("Day off mark", selection: $mark) {
+                    ForEach(DayOffMark.allCases) { mark in
+                        Text(mark.name).tag(mark)
+                    }
+                }
+                .pickerStyle(.segmented)
                 legend(StreakDay(level: 2), "Pushed. Counts toward the streak.")
-                legend(StreakDay(level: 0, off: .rest), "Day off. The streak carries on, and the day isn't counted.")
+                legend(StreakDay(level: 0, off: .rest), "Rest day. The streak carries on, and the day isn't counted.")
+                legend(StreakDay(level: 0, off: .freeze), "Freeze. The same, in ice blue.")
                 legend(StreakDay(level: 0), "Missed. The streak ends here.")
             } header: {
                 Text("On the graph")
@@ -207,6 +216,10 @@ struct RestDaysView: View {
         }
         .navigationTitle("Rest Days")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: mark) { _, mark in
+            AppConfig.dayOffMark = mark
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     private func toggle(_ weekday: Int) {
@@ -224,6 +237,9 @@ struct RestDaysView: View {
     /// the next week.
     private var scheduleNote: String {
         let limit = "Up to two a week, counted Sunday to Saturday."
+        if TestScenario.current != .off {
+            return "\(limit) While testing, changes apply straight away, past weeks included."
+        }
         guard let start = protection.pendingStart(asOf: Date()) else {
             return chosen.isEmpty ? "\(limit) With none chosen, every empty day ends the streak." : limit
         }
@@ -235,7 +251,8 @@ struct RestDaysView: View {
     private func legend(_ day: StreakDay, _ text: String) -> some View {
         HStack(spacing: 12) {
             DayCell(day: day, theme: WidgetStyle.classic.theme(for: colorScheme))
-                .frame(width: 18, height: 18)
+                .environment(\.dayOffMark, mark)
+                .frame(width: 22, height: 22)
                 .accessibilityHidden(true)
             Text(text)
                 .font(.subheadline)
